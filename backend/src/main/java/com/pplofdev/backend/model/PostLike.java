@@ -1,28 +1,28 @@
-package com.pplofdev.backend;
+package com.pplofdev.backend.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
 
 @Entity
-public class Post {
+@Table(name = "postlike", schema = "pplofdev")
+public class PostLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Lob
-    @Column(name = "content", nullable = false)
-    private String content;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Instant createdAt;
-
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Instant updatedAt;
 
     public Long getId() {
         return id;
@@ -32,12 +32,12 @@ public class Post {
         this.id = id;
     }
 
-    public String getContent() {
-        return content;
+    public Post getPost() {
+        return post;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setPost(Post post) {
+        this.post = post;
     }
 
     public Instant getCreatedAt() {
@@ -46,14 +46,6 @@ public class Post {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
 }

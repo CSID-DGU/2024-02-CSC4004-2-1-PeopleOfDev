@@ -1,4 +1,4 @@
-package com.pplofdev.backend;
+package com.pplofdev.backend.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -6,7 +6,8 @@ import org.hibernate.annotations.ColumnDefault;
 import java.time.Instant;
 
 @Entity
-public class Comment {
+@Table(name = "post", schema = "pplofdev")
+public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -19,6 +20,10 @@ public class Comment {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Instant createdAt;
+
+    @ColumnDefault("CURRENT_TIMESTAMP")
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private Instant updatedAt;
 
     public Long getId() {
         return id;
@@ -42,6 +47,14 @@ public class Comment {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
 }

@@ -1,8 +1,9 @@
-package com.pplofdev.backend;
+package com.pplofdev.backend.model;
 
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "user", schema = "pplofdev")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

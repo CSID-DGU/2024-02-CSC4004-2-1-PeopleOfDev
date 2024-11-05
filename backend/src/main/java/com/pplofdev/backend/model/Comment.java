@@ -1,23 +1,21 @@
-package com.pplofdev.backend;
+package com.pplofdev.backend.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
 
 @Entity
-public class PostLike {
+@Table(name = "comment", schema = "pplofdev")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    @Lob
+    @Column(name = "content", nullable = false)
+    private String content;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
@@ -31,12 +29,12 @@ public class PostLike {
         this.id = id;
     }
 
-    public Post getPost() {
-        return post;
+    public String getContent() {
+        return content;
     }
 
-    public void setPost(Post post) {
-        this.post = post;
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public Instant getCreatedAt() {

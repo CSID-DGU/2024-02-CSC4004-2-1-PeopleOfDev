@@ -1,4 +1,4 @@
-package com.pplofdev.backend;
+package com.pplofdev.backend.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 
 @Entity
+@Table(name = "usergroup", schema = "pplofdev")
 public class UserGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

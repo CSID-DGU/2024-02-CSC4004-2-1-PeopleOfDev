@@ -1,11 +1,16 @@
-package com.pplofdev.backend;
+package com.pplofdev.backend.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
 
+@Setter
+@Getter
 @Entity
+@Table(name = "grouprequest", schema = "pplofdev")
 public class GroupRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,33 +21,15 @@ public class GroupRequest {
     @Column(name = "request_date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Instant requestDate;
 
-    @ColumnDefault("'waiting'")
-    @Lob
+
     @Column(name = "status")
     private String status;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Instant getRequestDate() {
-        return requestDate;
-    }
-
-    public void setRequestDate(Instant requestDate) {
-        this.requestDate = requestDate;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
+    @PrePersist
+    public void prePersist() {
+        if (status == null) {
+            status = "waiting";
+        }
     }
 
 }
