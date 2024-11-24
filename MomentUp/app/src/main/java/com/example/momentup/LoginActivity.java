@@ -35,9 +35,7 @@ public class LoginActivity extends AppCompatActivity {
         usernameInput = findViewById(R.id.username_input);
         passwordInput = findViewById(R.id.password_input);
         loginButton = findViewById(R.id.login_button);
-        errorMessage = findViewById(R.id.error_message);
         findAccountLink = findViewById(R.id.find_account_link);
-        errorContainer = findViewById(R.id.error_container);
 
         // Set initial state
         setInitialState();
