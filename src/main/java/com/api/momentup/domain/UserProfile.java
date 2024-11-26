@@ -24,9 +24,8 @@ public class UserProfile {
 
 
 
-    public static UserProfile createUesrProfile(Users users, String picturePath, String pictureName) {
+    public static UserProfile createUesrProfile(String picturePath, String pictureName) {
         UserProfile userProfile = new UserProfile();
-        userProfile.users = users;
         userProfile.pictureName = pictureName;
         userProfile.picturePath = picturePath;
 

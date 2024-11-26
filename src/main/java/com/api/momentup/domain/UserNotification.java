@@ -1,26 +1,33 @@
 package com.api.momentup.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 public class UserNotification {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long notificationNumber;
 
     private String content;
-    private NotificationType type;
+
+    @Enumerated(EnumType.STRING)
+    private NotificationType notificationType;
+
+    @ManyToOne
+    @JoinColumn(name = "user_number", nullable = false)
+    private Users user;
 
     private Long targetNumber;
 
 
-    public static UserNotification createUserNotification(NotificationType type, Long targetNumber, String content) {
+    public static UserNotification createUserNotification(NotificationType notificationType, Long targetNumber, String content, Users user) {
         UserNotification userNotification = new UserNotification();
-        userNotification.type = type;
+        userNotification.notificationType = notificationType;
         userNotification.targetNumber = targetNumber;
         userNotification.content = content;
+        userNotification.user = user;
 
         return userNotification;
     }

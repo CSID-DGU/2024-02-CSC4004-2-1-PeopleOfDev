@@ -16,6 +16,10 @@ public class PostComment {
     private LocalDateTime writeDate;
 
     @ManyToOne
+    @JoinColumn(name = "user_number")
+    private Users writer;
+
+    @ManyToOne
     @JoinColumn(name = "post_number")
     private Post post;
 

@@ -1,17 +1,25 @@
 package com.api.momentup.service;
 
-import com.api.momentup.domain.Groups;
-import com.api.momentup.domain.Users;
-import com.api.momentup.domain.UserGroups;
+import com.api.momentup.domain.*;
+import com.api.momentup.exception.GroupNotFoundException;
+import com.api.momentup.exception.UserNotFoundException;
 import com.api.momentup.repository.GroupJoinRequestJpaRepository;
 import com.api.momentup.repository.GroupJpaRepository;
 import com.api.momentup.repository.UserGroupJpaRepository;
 import com.api.momentup.repository.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -22,17 +30,89 @@ public class GroupService {
     private final GroupJoinRequestJpaRepository groupJoinRequestJpaRepository;
     private final UserGroupJpaRepository userGroupJpaRepository;
 
-    public void join(Long groupNumber, Long userNumber) {
-        Optional<Users> findUser = userJpaRepository.findById(userNumber);
-        Optional<Groups> findGroup = groupJpaRepository.findById(groupNumber);
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
+    @Transactional
+    public Long join(Long groupNumber, Long userNumber) throws UserNotFoundException, GroupNotFoundException {
+        Users user = userJpaRepository.findById(userNumber)
+                .orElseThrow(UserNotFoundException::new);
+        Groups group = groupJpaRepository.findById(groupNumber)
+                .orElseThrow((UserNotFoundException::new));
+
+        // 중복 가입 방지 로직 추가
+        boolean alreadyJoined = userGroupJpaRepository.existsByUsersAndGroups(user, group);
+        if (alreadyJoined) {
+            throw new IllegalArgumentException("이미 가입한 그룹입니다.");
+        }
+
+        // UserGroups 생성 및 저장
+        UserGroups userGroups = UserGroups.createUserGroup(user, group);
+        userGroupJpaRepository.save(userGroups);
+
+        return userGroups.getUserGroupNumber();
+    }
+
+    @Transactional
+    public Long createGroup(String groupName, String hashTag, String groupIntro) {
+        Groups group = Groups.createGroup(groupName, hashTag, groupIntro);
+
+        groupJpaRepository.save(group);
+
+        return group.getGroupNumber();
+    }
+
+    @Transactional
+    public Long createGroup(String groupName, String hashTag, String groupIntro, MultipartFile groupPicture) throws Exception {
+        Groups group = Groups.createGroup(groupName, hashTag, groupIntro);
+        String usbDir = "group";
+
+        try {
+            String originalFilename = groupPicture.getOriginalFilename();
+            String filename = UUID.randomUUID() + "_" + originalFilename;
+
+            // 파일 저장 경로 설정
+            Path filePath = Paths.get(uploadDir, usbDir ,filename);
+            Files.createDirectories(filePath.getParent()); // 디렉토리 생성
+            Files.copy(groupPicture.getInputStream(), filePath); // 파일 저장
+
+            String saveFilePath = "/uploaded/photos/"+ usbDir+ "/" + filename;
+
+            GroupPicture saveGroupPicture = GroupPicture.createGroupPicture(group, saveFilePath, originalFilename);
+            group.setGroupPicture(saveGroupPicture);
+
+            groupJpaRepository.save(group);
+        } catch (Exception e) {
+            throw new Exception();
+        }
+
+        return group.getGroupNumber();
+    }
+
+    @Transactional
+    public Long requestInviteCodeGroupJoin(Long userNumber, String inviteCode)
+            throws UserNotFoundException, GroupNotFoundException {
+        Users findUsers = userJpaRepository.findById(userNumber)
+                .orElseThrow(UserNotFoundException::new);
+
+        Groups findGroups = groupJpaRepository.findByGroupInviteCode(inviteCode)
+                .orElseThrow((UserNotFoundException::new));
 
 
-        UserGroups userGroups = UserGroups.createUserGroup(findUser.get(), findGroup.get());
+        GroupJoinRequest saveGroupJoinRequest = GroupJoinRequest.createGroupJoinRequest(findUsers, findGroups);
+        groupJoinRequestJpaRepository.save(saveGroupJoinRequest);
+
+        return saveGroupJoinRequest.getRequestNumber();
+    }
+
+    public List<Users> getGroupJoinUsers(Long userNumber) {
+        return userGroupJpaRepository.findByGroups_GroupNumber(userNumber)
+                .stream()
+                .map(UserGroups::getUsers)
+                .collect(Collectors.toList());
     }
 
 
-    public void createGroup(String groupName, String hashTag, String groupIntro) {
 
 
-    }
 }

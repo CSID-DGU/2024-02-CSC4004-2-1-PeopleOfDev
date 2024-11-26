@@ -26,7 +26,7 @@ public class Groups {
     private LocalDateTime createDate;
 
     // 양방향 OneToOne 매핑
-    @OneToOne(mappedBy = "users", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "groups", cascade = CascadeType.ALL, orphanRemoval = true)
     private GroupPicture groupPicture;
 
     public void setGroupPicture(GroupPicture groupPicture) {

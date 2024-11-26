@@ -10,16 +10,22 @@ public class PostPicture {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postPictureNumber;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "post_number")
     private Post post;
 
     private String picturePath;
+    private String pictureName;
 
-    public static PostPicture createPostPicture(Post post, String picturePath) {
+    public void setPost(Post post) {
+        this.post = post;
+    }
+
+    public static PostPicture createPostPicture(Post post, String picturePath, String pictureName) {
         PostPicture postPicture = new PostPicture();
         postPicture.post = post;
         postPicture.picturePath = picturePath;
+        postPicture.pictureName = pictureName;
 
         return postPicture;
     }

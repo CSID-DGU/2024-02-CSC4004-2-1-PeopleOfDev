@@ -2,25 +2,23 @@ package com.api.momentup.api;
 
 import com.api.momentup.dto.ApiResult;
 import com.api.momentup.dto.ResultType;
-import com.api.momentup.dto.user.*;
+import com.api.momentup.dto.group.response.HomeGroupsDto;
 import com.api.momentup.domain.Users;
+import com.api.momentup.dto.user.request.*;
+import com.api.momentup.dto.user.response.UserDto;
+import com.api.momentup.exception.NotificationNotFoundException;
+import com.api.momentup.exception.UserDuplicateException;
 import com.api.momentup.exception.UserNotFoundException;
 import com.api.momentup.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(produces = "application/json; charset=utf8")
@@ -28,29 +26,33 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "User API", description = "사용자 관련 API")
 public class UserApiController {
     private final UserService userService;
+
     @PostMapping(value = "/api/v1/users", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "회원가입", description = "User 회원가입 API")
     public ApiResult saveUser(@RequestPart("user") CreateUserRequest request, @RequestPart(value = "profile", required = false) MultipartFile userProfile) {
         Long userNumber = null;
+        try {
+            if (userProfile == null || userProfile.isEmpty()) {
+                System.out.println("userProfile is Empty");
 
-        if(userProfile == null || userProfile.isEmpty()) {
-            System.out.println("userProfile is Empty");
-            userNumber = userService.join(request.getUserId(), request.getUserPw(),
-                    request.getUserName(), request.getUserEmail());
-        } else {
-            try {
+                userNumber = userService.join(request.getUserId(), request.getUserPw(),
+                        request.getUserName(), request.getUserEmail());
+            } else {
                 userNumber = userService.join(request.getUserId(), request.getUserPw(),
                         request.getUserName(), request.getUserEmail(), userProfile);
-            } catch (Exception e) {
-                ApiResult.error(ResultType.FAIL.getCode(), e.getMessage());
             }
+        } catch (UserDuplicateException e) {
+            System.out.println("UserDuplicateException ");
+            return ApiResult.error(ResultType.FAIL.getCode(), e.getMessage());
+        } catch (Exception e) {
+            return ApiResult.error(ResultType.FAIL.getCode(), e.getMessage());
         }
 
         return ApiResult.success(userNumber);
     }
 
-    @GetMapping("/api/v1/user/{id}")
-    public ApiResult getUser(@RequestBody @Valid Long userNumber) {
+    @GetMapping("/api/v1/user/{userNumber}")
+    public ApiResult getUser(@PathVariable Long postNumber, @RequestBody @Valid Long userNumber) {
 
         return ApiResult.success(null);
     }
@@ -61,12 +63,13 @@ public class UserApiController {
         try {
             Users users = userService.login(request.getUserId(), request.getUserPw());
 
-            System.out.println("user id : "+ users.getUserId());
+            System.out.println("user id : " + users.getUserId());
 
             return ApiResult.success(new UserDto(users));
         } catch (UserNotFoundException e) {
             return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
         } catch (Exception e) {
+            e.printStackTrace();
             return ApiResult.error(ResultType.FAIL.getCode(), ResultType.FAIL.getMessage());
         }
     }
@@ -97,12 +100,40 @@ public class UserApiController {
         }
     }
 
-    @Data
-    static class CreateUserResponse {
-        private Long id;
+    @GetMapping("/api/v1/users/groups/{userNumber}")
+    public ApiResult getUserGroups(@PathVariable Long userNumber) {
+        List<HomeGroupsDto> findGroups = userService.getUserGroups(userNumber);
 
-        public CreateUserResponse(Long id) {
-            this.id = id;
+        if(findGroups.isEmpty()) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), "게시물 없음");
+        }
+
+        return ApiResult.success(findGroups);
+    }
+
+    @PostMapping("/api/v1/users/follow/request")
+    public ApiResult requestFollow(@RequestBody FollowRequest request) {
+        try {
+            Long notificationNumber = userService.requestFollow(request.getOwnUserNumber(), request.getTargetUserNumber());
+
+            return ApiResult.success(notificationNumber);
+        } catch (UserNotFoundException e) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
+        }
+    }
+
+    @PostMapping("/api/v1/users/follow")
+    public ApiResult acceptFollow(@RequestBody AcceptFollowRequest request) {
+        try {
+            Long followNumber = userService.follow(
+                    request.getUserNotificationNumber(), request.getFollowNumber(), request.getFollowingNumber()
+            );
+
+            return ApiResult.success(followNumber);
+        } catch (NotificationNotFoundException e) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
+        } catch (UserNotFoundException e) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
         }
     }
 }

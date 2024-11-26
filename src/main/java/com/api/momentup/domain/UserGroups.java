@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class UserGroups {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userGroupNumber;
 
     @ManyToOne

@@ -21,4 +21,13 @@ public class GroupPicture {
         this.groups = groups;
     }
 
+    public static GroupPicture createGroupPicture(Groups groups, String picturePath, String pictureName) {
+        GroupPicture groupPicture = new GroupPicture();
+        groupPicture.groups = groups;
+        groupPicture.picturePath = picturePath;
+        groupPicture.pictureName = pictureName;
+
+        return  groupPicture;
+    }
+
 }
