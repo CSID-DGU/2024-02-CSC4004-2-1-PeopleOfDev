@@ -69,6 +69,8 @@ dependencies {
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
-    implementation (libs.material.calendarview)
+    implementation (libs.material.calendarview) {
+        exclude(group = "com.android.support")
+    }
     implementation (libs.threetenabp)
 }

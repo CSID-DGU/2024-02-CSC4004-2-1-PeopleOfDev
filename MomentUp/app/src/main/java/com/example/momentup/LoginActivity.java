@@ -1,8 +1,15 @@
 package com.example.momentup;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.UnderlineSpan;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -14,6 +21,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textfield.TextInputEditText;
@@ -22,6 +30,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText usernameInput;
     private EditText passwordInput;
     private Button loginButton;
+    private Button signupButton;
     private TextView errorMessage;
     private TextView findAccountLink;
     private ViewGroup errorContainer;
@@ -35,7 +44,10 @@ public class LoginActivity extends AppCompatActivity {
         usernameInput = findViewById(R.id.username_input);
         passwordInput = findViewById(R.id.password_input);
         loginButton = findViewById(R.id.login_button);
+        signupButton = findViewById(R.id.signup_button);
+        errorMessage = findViewById(R.id.error_message);
         findAccountLink = findViewById(R.id.find_account_link);
+        errorContainer = findViewById(R.id.error_container);
 
         // Set initial state
         setInitialState();
@@ -70,8 +82,32 @@ public class LoginActivity extends AppCompatActivity {
         // Set login button click listener
         loginButton.setOnClickListener(v -> attemptLogin());
 
+        // 회원가입 버튼 클릭
+        signupButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+                //startActivity(intent);
+            }
+        });
+
+        // 계정 찾기 text 중 일부만 다른 style 적용
+        SpannableString findAccountText = new SpannableString("혹시 계정 정보가 기억나지 않으세요?");
+        int start = 3;
+        int end = 8;
+        findAccountText.setSpan(new ForegroundColorSpan(this.getColor(R.color.primary)), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        findAccountText.setSpan(new UnderlineSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        findAccountLink.setText(findAccountText);
+
         // Set find account link click listener
-        findAccountLink.setOnClickListener(v -> showFindAccountDialog());
+        findAccountLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LoginActivity.this, FindAccountActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void setInitialState() {
@@ -81,8 +117,6 @@ public class LoginActivity extends AppCompatActivity {
 
         // Disable login button
         loginButton.setEnabled(false);
-        loginButton.setAlpha(0.5f);
-        loginButton.setBackgroundColor(ECEFF1);
 
         // Hide error message
         errorContainer.setVisibility(View.GONE);
@@ -93,8 +127,14 @@ public class LoginActivity extends AppCompatActivity {
         boolean hasPassword = !passwordInput.getText().toString().trim().isEmpty();
 
         // Enable button only if both fields have input
-        loginButton.setEnabled(hasUsername && hasPassword);
-        loginButton.setAlpha(hasUsername && hasPassword ? 1.0f : 0.5f);
+        if(hasUsername && hasPassword) {
+            loginButton.setEnabled(true);
+            loginButton.setTextColor(this.getColor(R.color.white));
+        }
+        else {
+            loginButton.setEnabled(false);
+            loginButton.setTextColor(this.getColor(R.color.gray3));
+        }
 
         // Hide error when user starts typing
         errorContainer.setVisibility(View.GONE);
@@ -121,16 +161,5 @@ public class LoginActivity extends AppCompatActivity {
         // Shake animation for error feedback
         Animation shake = AnimationUtils.loadAnimation(this, R.anim.shake);
         errorContainer.startAnimation(shake);
-    }
-
-    private void showFindAccountDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("계정 찾기")
-                .setMessage("계정 찾기 화면으로 이동하시겠습니까?")
-                .setPositiveButton("확인", (dialog, which) -> {
-                    // Navigate to account recovery screen
-                })
-                .setNegativeButton("취소", null)
-                .show();
     }
 }
