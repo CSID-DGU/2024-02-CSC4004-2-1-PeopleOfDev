@@ -24,7 +24,8 @@ ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", versi
 ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version = "1.5.1" }
 ui-tooling = "androidx.compose.ui:ui-tooling:1.7.5"
 material3 = "androidx.compose.material3:material3:1.3.1"
-
+material-calendarview = "com.github.prolificinteractive:material-calendarview:2.0.1"
+threetenabp = "com.jakewharton.threetenabp:threetenabp:1.1.1"
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
