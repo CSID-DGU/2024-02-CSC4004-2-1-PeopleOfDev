@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MomentUp</string>
+    <string name="title_activity_find_account">계정 정보 찾기</string>
+</resources>
