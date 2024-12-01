@@ -57,6 +57,14 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+        <activity
+            android:name=".CalendarActivity"
+            android:exported="false" >
+            <intent-filter>
+
+            </intent-filter>
+
+        </activity>
     </application>
 
 </manifest>
