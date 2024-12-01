@@ -136,7 +136,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:drawableStart="@drawable/ic_help"
+            android:drawableStart="@drawable/ic_help_mono"
             android:drawablePadding="4dp"
             android:text="혹시 계정 정보가 기억나지 않으세요?"
             android:fontFamily="@font/pretendard_medium"

@@ -104,6 +104,9 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
+    private void requestPermission() {
+    }
+
     private boolean validateInput(String name, String id,
                                   String password, String email) {
         if(name.isEmpty()) {

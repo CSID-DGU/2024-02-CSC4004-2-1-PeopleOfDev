@@ -1,13 +1,13 @@
 package com.example.momentup;
 
+import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
-import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.UnderlineSpan;
 import android.view.View;
@@ -17,14 +17,8 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-
-import com.google.android.material.textfield.TextInputLayout;
-import com.google.android.material.textfield.TextInputEditText;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText usernameInput;
@@ -35,9 +29,20 @@ public class LoginActivity extends AppCompatActivity {
     private TextView findAccountLink;
     private ViewGroup errorContainer;
 
+    private LoadingDialog loadingDialog;
+    private SharedPreferences pref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        pref = getSharedPreferences("auth", MODE_PRIVATE);
+
+        if (pref.getBoolean("auto_login", false)) {
+            navigateToMain();
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         // Initialize views
@@ -48,6 +53,8 @@ public class LoginActivity extends AppCompatActivity {
         errorMessage = findViewById(R.id.error_message);
         findAccountLink = findViewById(R.id.find_account_link);
         errorContainer = findViewById(R.id.error_container);
+
+        loadingDialog = new LoadingDialog(this);
 
         // Set initial state
         setInitialState();
@@ -144,13 +151,42 @@ public class LoginActivity extends AppCompatActivity {
         String username = usernameInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
+        loginButton.setEnabled(false);
+        loginButton.setTextColor(this.getColor(R.color.gray3));
+
+        showLoading();
+
         // Simulate login check (replace with actual login logic)
         if (username.equals("momentup111") && password.equals("password123")) {
             // Success - proceed to next screen
-            Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show();
+            saveLoginState();
+            hideLoading();
+            navigateToMain();
         } else {
             // Show error state
             showErrorState();
+            hideLoading();
+            loginButton.setEnabled(true);
+            loginButton.setTextColor(this.getColor(R.color.white));
+        }
+    }
+
+    private void saveLoginState() {
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean("is_logged_in", true);
+        editor.putBoolean("auto_login", true);
+        editor.apply();
+    }
+
+    private void showLoading() {
+        if (!isFinishing() && !loadingDialog.isShowing()) {
+           loadingDialog.show();
+        }
+    }
+
+    private void hideLoading() {
+        if (!isFinishing() && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
         }
     }
 
@@ -161,5 +197,20 @@ public class LoginActivity extends AppCompatActivity {
         // Shake animation for error feedback
         Animation shake = AnimationUtils.loadAnimation(this, R.anim.shake);
         errorContainer.startAnimation(shake);
+    }
+
+    private void navigateToMain() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (loadingDialog != null) {
+            loadingDialog.dismiss();
+        }
     }
 }
