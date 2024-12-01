@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF">
+    android:background="@color/white">
 
     <!-- Toolbar -->
     <LinearLayout
@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="계정 정보 찾기"
-            android:textColor="#333333"
+            android:textColor="@color/gray1"
             android:textSize="18sp"
             android:fontFamily="@font/nexon_bold"/>
     </LinearLayout>

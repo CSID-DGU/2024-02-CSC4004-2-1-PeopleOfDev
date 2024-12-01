@@ -73,4 +73,5 @@ dependencies {
         exclude(group = "com.android.support")
     }
     implementation (libs.threetenabp)
+    implementation ("com.vanniktech:android-image-cropper:4.6.0")
 }
