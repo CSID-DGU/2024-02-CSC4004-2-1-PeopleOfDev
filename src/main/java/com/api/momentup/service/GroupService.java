@@ -1,8 +1,7 @@
 package com.api.momentup.service;
 
 import com.api.momentup.domain.*;
-import com.api.momentup.exception.GroupNotFoundException;
-import com.api.momentup.exception.UserNotFoundException;
+import com.api.momentup.exception.*;
 import com.api.momentup.repository.GroupJoinRequestJpaRepository;
 import com.api.momentup.repository.GroupJpaRepository;
 import com.api.momentup.repository.UserGroupJpaRepository;
@@ -33,22 +32,34 @@ public class GroupService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
+    public Groups getGroup(Long groupNumber) throws GroupNotFoundException {
+        Groups findGroups = groupJpaRepository.findById(groupNumber)
+                .orElseThrow(GroupNotFoundException::new);
+
+        return findGroups;
+    }
+
     @Transactional
-    public Long join(Long groupNumber, Long userNumber) throws UserNotFoundException, GroupNotFoundException {
+    public Long join(Long groupNumber, Long userNumber) throws UserNotFoundException, GroupNotFoundException, NotGroupJoinRequestException, AleadyGroupJoinException {
         Users user = userJpaRepository.findById(userNumber)
                 .orElseThrow(UserNotFoundException::new);
         Groups group = groupJpaRepository.findById(groupNumber)
                 .orElseThrow((UserNotFoundException::new));
 
+        GroupJoinRequest findGroupJoinRequest = groupJoinRequestJpaRepository.findByUsersAndGroups(user, group)
+                .orElseThrow(NotGroupJoinRequestException::new);
+
         // 중복 가입 방지 로직 추가
         boolean alreadyJoined = userGroupJpaRepository.existsByUsersAndGroups(user, group);
         if (alreadyJoined) {
-            throw new IllegalArgumentException("이미 가입한 그룹입니다.");
+            throw new AleadyGroupJoinException();
         }
 
         // UserGroups 생성 및 저장
         UserGroups userGroups = UserGroups.createUserGroup(user, group);
         userGroupJpaRepository.save(userGroups);
+
+        groupJoinRequestJpaRepository.delete(findGroupJoinRequest);
 
         return userGroups.getUserGroupNumber();
     }
@@ -91,13 +102,18 @@ public class GroupService {
 
     @Transactional
     public Long requestInviteCodeGroupJoin(Long userNumber, String inviteCode)
-            throws UserNotFoundException, GroupNotFoundException {
+            throws UserNotFoundException, GroupNotFoundException, AlreadyGroupJoinRequestException {
         Users findUsers = userJpaRepository.findById(userNumber)
                 .orElseThrow(UserNotFoundException::new);
 
         Groups findGroups = groupJpaRepository.findByGroupInviteCode(inviteCode)
                 .orElseThrow((UserNotFoundException::new));
 
+        Optional<GroupJoinRequest> findByRequest = groupJoinRequestJpaRepository.findByUsersAndGroups(findUsers, findGroups);
+
+        if(findByRequest.isPresent()) {
+            throw new AlreadyGroupJoinRequestException();
+        }
 
         GroupJoinRequest saveGroupJoinRequest = GroupJoinRequest.createGroupJoinRequest(findUsers, findGroups);
         groupJoinRequestJpaRepository.save(saveGroupJoinRequest);
@@ -112,7 +128,32 @@ public class GroupService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void rejectGroupJoinRequest(Long groupJoinRequestNumber) throws NotGroupJoinRequestException {
+        GroupJoinRequest findRequest = groupJoinRequestJpaRepository.findById(groupJoinRequestNumber)
+                .orElseThrow(NotGroupJoinRequestException::new);
 
+        groupJoinRequestJpaRepository.delete(findRequest);
+    }
 
+    public List<Groups> getUserJoinGroups(Long userNumber) {
+        List<Groups> findGroups = userGroupJpaRepository.findGroupsByUserNumber(userNumber);
+
+        return findGroups;
+    }
+
+    @Transactional
+    public void expelGroupUser(Long groupNumber, Long userNumber) throws GroupNotFoundException, UserNotFoundException, GroupNotJoinException {
+        Groups findGroups = groupJpaRepository.findById(groupNumber)
+                .orElseThrow(GroupNotFoundException::new);
+
+        Users findUsers = userJpaRepository.findById(userNumber)
+                .orElseThrow(UserNotFoundException::new);
+
+        UserGroups findUserGroups = userGroupJpaRepository.findByGroupsAndUsers(findGroups, findUsers)
+                .orElseThrow(GroupNotJoinException::new);
+
+        userGroupJpaRepository.delete(findUserGroups);
+    }
 
 }

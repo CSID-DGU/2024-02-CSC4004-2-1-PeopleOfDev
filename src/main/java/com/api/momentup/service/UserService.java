@@ -3,6 +3,7 @@ package com.api.momentup.service;
 
 import com.api.momentup.domain.*;
 import com.api.momentup.dto.group.response.HomeGroupsDto;
+import com.api.momentup.dto.user.response.FollowersDto;
 import com.api.momentup.exception.GroupNotFoundException;
 import com.api.momentup.exception.NotificationNotFoundException;
 import com.api.momentup.exception.UserDuplicateException;
@@ -17,6 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,7 +49,7 @@ public class UserService {
         Optional<Users> findUser = userJpaRepository.findByUserId(userId);
 
         if(findUser.isPresent()) {
-            throw new UserDuplicateException("이미 가입한 유저입니다.");
+            throw new UserDuplicateException();
         }
 
         String usbDir = "user";
@@ -80,7 +84,7 @@ public class UserService {
         Optional<Users> findUser = userJpaRepository.findByUserId(userId);
 
         if(findUser.isPresent()) {
-            throw new UserDuplicateException("이미 가입한 유저입니다.");
+            throw new UserDuplicateException();
         }
 
         Users users = Users.createMember(userId, userName, userPw, userEmail);
@@ -95,7 +99,7 @@ public class UserService {
                 .orElseThrow(UserNotFoundException::new);
 
         Groups findGroups = groupJpaRepository.findById(groupNumber)
-                .orElseThrow(()-> new GroupNotFoundException("Group not found"));
+                .orElseThrow(GroupNotFoundException::new);
 
         GroupJoinRequest groupJoinRequest = GroupJoinRequest.createGroupJoinRequest(findUsers, findGroups);
         groupJoinRequestJpaRepository.save(groupJoinRequest);
@@ -148,7 +152,7 @@ public class UserService {
         followJpaRepository.save(follow);
 
         UserNotification findNotification = userNotificationJpaRepository.findById(userNotificationNumber)
-                .orElseThrow(() -> new NotificationNotFoundException("존재하지 않는 알림입니다."));
+                .orElseThrow(NotificationNotFoundException::new);
 
         userNotificationJpaRepository.delete(findNotification);
 
@@ -159,12 +163,22 @@ public class UserService {
     public Long requestFollow(Long ownUserNumber, Long targetUserNumber) throws UserNotFoundException {
         Users findUser = userJpaRepository.findById(ownUserNumber)
                 .orElseThrow(UserNotFoundException::new);
-
+        String title = "팔로우 신청";
         String content = findUser.getUserId() + "님이 팔로우를 요청하였습니다.";
-        UserNotification saveNotification = UserNotification.createUserNotification(NotificationType.FOLLOW, targetUserNumber, content, findUser);
+        LocalTime notificationTime = LocalTime.now().plusMinutes(1);
+        UserNotification saveNotification = UserNotification.createUserNotification(NotificationType.FOLLOW,
+                targetUserNumber, title, content, notificationTime, "", findUser);
         userNotificationJpaRepository.save(saveNotification);
 
         return saveNotification.getNotificationNumber();
+    }
+
+    @Transactional
+    public void requestRejectFollow(Long userNotificationNumber) throws NotificationNotFoundException {
+        UserNotification findNotification = userNotificationJpaRepository.findById(userNotificationNumber)
+                .orElseThrow(NotificationNotFoundException::new);
+
+        userNotificationJpaRepository.delete(findNotification);
     }
 
     @Transactional
@@ -189,15 +203,30 @@ public class UserService {
     }
 
 
-    public List<Users> getFollowersList(Long userId) {
+    public List<FollowersDto> getFollowersListWithMutualStatus(Long userId) {
         Users user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 ID입니다."));
-        return user.getFollowers().stream()
-                .map(Follow::getFollower) // 팔로워만 추출
+
+        List<Users> allFollowers = user.getFollowers().stream()
+                .map(Follow::getFollower)
                 .collect(Collectors.toList());
+
+        List<FollowersDto> followers = new ArrayList<>();
+
+        for (Users follower : allFollowers) {
+            boolean isMutualFollow = user.getFollowing().stream()
+                    .anyMatch(f -> f.getFollowing().equals(follower));
+            followers.add(new FollowersDto(follower.getUserNumber(), follower.getUserId(),
+                    follower.getUserProfile().getPicturePath() , isMutualFollow));
+        }
+
+        return followers;
     }
 
-    public List<HomeGroupsDto> getUserGroups(Long userNumber) {
+    public List<HomeGroupsDto> getUserGroups(Long userNumber) throws UserNotFoundException {
+        Users findUser = userJpaRepository.findById(userNumber)
+                .orElseThrow(UserNotFoundException::new);
+
         List<HomeGroupsDto> groupsByUserNumber = userGroupJpaRepository.findGroupsWithLastPostTime(userNumber);
 
         return groupsByUserNumber;

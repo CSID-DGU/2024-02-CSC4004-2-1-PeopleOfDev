@@ -5,6 +5,8 @@ import com.api.momentup.dto.ResultType;
 import com.api.momentup.dto.group.response.HomeGroupsDto;
 import com.api.momentup.domain.Users;
 import com.api.momentup.dto.user.request.*;
+import com.api.momentup.dto.user.response.FollowersDto;
+import com.api.momentup.dto.user.response.FollowingsDto;
 import com.api.momentup.dto.user.response.UserDto;
 import com.api.momentup.exception.NotificationNotFoundException;
 import com.api.momentup.exception.UserDuplicateException;
@@ -19,15 +21,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(produces = "application/json; charset=utf8")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Tag(name = "User API", description = "사용자 관련 API")
 public class UserApiController {
     private final UserService userService;
 
-    @PostMapping(value = "/api/v1/users", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "회원가입", description = "User 회원가입 API")
     public ApiResult saveUser(@RequestPart("user") CreateUserRequest request, @RequestPart(value = "profile", required = false) MultipartFile userProfile) {
         Long userNumber = null;
@@ -51,13 +54,14 @@ public class UserApiController {
         return ApiResult.success(userNumber);
     }
 
-    @GetMapping("/api/v1/user/{userNumber}")
+    // 유저 정보
+    @GetMapping("/{userNumber}")
     public ApiResult getUser(@PathVariable Long postNumber, @RequestBody @Valid Long userNumber) {
 
         return ApiResult.success(null);
     }
 
-    @GetMapping("/api/v1/user/login")
+    @GetMapping("/login")
     @Operation(summary = "로그인", description = "아이디 패스워드로 로그인")
     public ApiResult login(@RequestBody @Valid LoginRequest request) {
         try {
@@ -74,7 +78,9 @@ public class UserApiController {
         }
     }
 
-    @PostMapping("/api/v1/users/id")
+
+    // 아이디 찾기
+    @PostMapping("/id")
     public ApiResult findUserId(@RequestBody FindUserIdRequest request) {
         try {
             userService.findUserId(request.getUserName(), request.getUserEmail());
@@ -87,7 +93,8 @@ public class UserApiController {
         }
     }
 
-    @PostMapping("/api/v1/users/password")
+    // 비밀번호 찾기
+    @PostMapping("/password")
     public ApiResult findUserPw(@RequestBody FindUserPwRequest request) {
         try {
             userService.findUserPw(request.getUserName(), request.getUserId(), request.getUserEmail());
@@ -100,18 +107,21 @@ public class UserApiController {
         }
     }
 
-    @GetMapping("/api/v1/users/groups/{userNumber}")
+    // 홈 화면 그룹 목록 빛 최근 게시물 시간
+    @GetMapping("/groups/{userNumber}")
     public ApiResult getUserGroups(@PathVariable Long userNumber) {
-        List<HomeGroupsDto> findGroups = userService.getUserGroups(userNumber);
+        try {
+            List<HomeGroupsDto> findGroups = userService.getUserGroups(userNumber);
 
-        if(findGroups.isEmpty()) {
-            return ApiResult.error(ResultType.NOT_FOUND.getCode(), "게시물 없음");
+            return ApiResult.success(findGroups);
+        } catch (UserNotFoundException e) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
         }
 
-        return ApiResult.success(findGroups);
     }
 
-    @PostMapping("/api/v1/users/follow/request")
+    // 팔로우 요청
+    @PostMapping("/follow/request")
     public ApiResult requestFollow(@RequestBody FollowRequest request) {
         try {
             Long notificationNumber = userService.requestFollow(request.getOwnUserNumber(), request.getTargetUserNumber());
@@ -122,7 +132,8 @@ public class UserApiController {
         }
     }
 
-    @PostMapping("/api/v1/users/follow")
+    // 팔로우 수락
+    @PostMapping("/follow")
     public ApiResult acceptFollow(@RequestBody AcceptFollowRequest request) {
         try {
             Long followNumber = userService.follow(
@@ -136,4 +147,67 @@ public class UserApiController {
             return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
         }
     }
+
+    // 팔로우 요청 거절
+   @DeleteMapping("/follow/request/{userNotificationNumber}")
+    public ApiResult requestRejectFollow(@PathVariable Long userNotificationNumber) {
+        try {
+            userService.requestRejectFollow(userNotificationNumber);
+
+            return ApiResult.success(null);
+        }  catch (NotificationNotFoundException e) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
+        }
+    }
+
+    // 언팔로우
+    @DeleteMapping("/follow")
+    public ApiResult unFollow(@RequestBody FollowRequest request) {
+        try {
+            userService.unfollow(request.getOwnUserNumber(), request.getTargetUserNumber());
+
+            return ApiResult.success(null);
+        }  catch (UserNotFoundException e) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
+        }
+    }
+
+    // 팔로우 목록
+    @GetMapping("/follow/{userNumber}")
+    public ApiResult getFollows(@PathVariable Long userNumber) {
+        try {
+            List<FollowersDto> followersList = userService.getFollowersListWithMutualStatus(userNumber);
+
+            return ApiResult.success(followersList);
+        } catch (Exception e) {
+            return ApiResult.error(ResultType.FAIL.getCode(), ResultType.FAIL.getMessage());
+        }
+    }
+
+    @GetMapping("/following/{userNumber}")
+    public ApiResult getFollowings(@PathVariable Long userNumber) {
+        try {
+            List<Users> followingList = userService.getFollowingList(userNumber);
+
+            List<FollowingsDto> result = followingList.stream()
+                    .map(u ->
+                            new FollowingsDto(u.getUserNumber(), u.getUserId(), u.getUserProfile().getPicturePath())
+                    ).toList();
+
+            return ApiResult.success(result);
+        } catch (Exception e) {
+            return ApiResult.error(ResultType.FAIL.getCode(), ResultType.FAIL.getMessage());
+        }
+    }
+
+    @PostMapping("/challenge")
+    public void createChallenge() {
+
+    }
+
+    @DeleteMapping("/challenge")
+    public void removeChallenge() {
+
+    }
+
 }

@@ -9,9 +9,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserGroupJpaRepository extends JpaRepository<UserGroups, Long> {
     boolean existsByUsersAndGroups(Users users, Groups groups);
+
+    Optional<UserGroups> findByGroupsAndUsers(Groups groups, Users users);
 
     // userNumber를 기준으로 그룹 리스트를 가져오는 쿼리 메서드
     @Query("SELECT ug.groups FROM UserGroups ug WHERE ug.users.userNumber = :userNumber")
@@ -29,4 +32,5 @@ public interface UserGroupJpaRepository extends JpaRepository<UserGroups, Long> 
     List<HomeGroupsDto> findGroupsWithLastPostTime(@Param("userNumber") Long userNumber);
 
     List<UserGroups> findByGroups_GroupNumber(Long groupNumber);
+
 }

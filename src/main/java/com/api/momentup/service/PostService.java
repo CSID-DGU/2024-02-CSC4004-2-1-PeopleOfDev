@@ -1,18 +1,19 @@
 package com.api.momentup.service;
 
 import com.api.momentup.domain.*;
-import com.api.momentup.dto.post.response.CommentsDto;
+import com.api.momentup.dto.comment.response.CommentsDto;
 import com.api.momentup.dto.post.response.PostDetailDto;
-import com.api.momentup.exception.GroupNotFoundException;
-import com.api.momentup.exception.PostNotFoundException;
-import com.api.momentup.exception.UserNotFoundException;
+import com.api.momentup.exception.*;
 import com.api.momentup.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.xml.stream.events.Comment;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,7 +38,7 @@ public class PostService {
     public Long writePost(String content, MultipartFile file, Long userNumber) throws Exception {
         String usbDir = "post";
         Users findUser = userJpaRepository.findById(userNumber)
-                .orElseThrow(()-> new GroupNotFoundException("Group not found"));
+                .orElseThrow(GroupNotFoundException::new);
 
         Post post = Post.createPost(content, findUser);
 
@@ -69,7 +70,7 @@ public class PostService {
     public Long writeGroupPost(String content, MultipartFile file, Long userNumber, Long groupNumber) throws Exception {
         String usbDir = "post";
         Users findUser = userJpaRepository.findById(userNumber)
-                .orElseThrow(()-> new GroupNotFoundException("Group not found"));
+                .orElseThrow(GroupNotFoundException::new);
 
         List<Groups> matchingGroups = findUser.getUserGroups().stream()
                 .map(UserGroups::getGroups)
@@ -77,7 +78,7 @@ public class PostService {
                 .collect(Collectors.toList());
 
         if (matchingGroups.isEmpty()) {
-            throw new GroupNotFoundException("No groups found with number " + groupNumber);
+            throw new GroupNotJoinException();
         }
 
         Post post = Post.createPost(content, findUser, matchingGroups.get(0));
@@ -139,11 +140,16 @@ public class PostService {
         return postLikeJpaRepository.countByPost_PostNumber(postId);
     }
 
+
+    @Transactional
     // 댓글 작성
-    public Long createComment(String commentContent, Long postId) {
-        Post post = postJpaRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("Post not found"));
-        PostComment comment = PostComment.createPostComment(commentContent, post);
+    public Long createComment(Long postNumber, String commentContent, Long writeUserNumber) throws UserNotFoundException, PostNotFoundException {
+        Post post = postJpaRepository.findById(postNumber).orElseThrow(PostNotFoundException::new);
+        Users findUser = userJpaRepository.findById(writeUserNumber).orElseThrow(UserNotFoundException::new);
+
+        PostComment comment = PostComment.createPostComment(post, commentContent, findUser);
         postCommentJpaRepository.save(comment);
+
         return comment.getPostCommentNumber();
     }
 
@@ -176,8 +182,26 @@ public class PostService {
         // 4. 좋아요 여부
         boolean isLiked = postLikeJpaRepository.existsByPostAndUser(findPost, findUser);
 
+        System.out.println("getPostNumber" + findPost.getPostNumber() + " userNumber : "+userNumber);
         // 5. 댓글 목록 조회
-        List<CommentsDto> comments = postCommentJpaRepository.findCommentsWithLikeInfo(findPost.getPostNumber(), userNumber);
+        List<PostComment> comments = postCommentJpaRepository.findByPost(findPost);
+
+        List<CommentsDto> commentDtos = comments.stream()
+                .map(comment -> new CommentsDto(
+                        comment.getPostCommentNumber(),
+                        comment.getCommentContent(),
+                        comment.getWriteDate(),
+                        comment.getWriter().getUserId(),
+                        comment.getWriter().getUserProfile() != null
+                                ? comment.getWriter().getUserProfile().getPicturePath()
+                                : "",
+                        (long) comment.getLikes().size(), // 좋아요 개수
+                        comment.getLikes().stream()
+                                .anyMatch(like -> like.getUser().getUserNumber().equals(userNumber)) // 사용자가 좋아요 눌렀는지 확인
+                ))
+                .toList();
+
+        System.out.println("comments size : "+ comments.size());
 
         String picturePath = findPost.getPostPicture().getPicturePath();
 
@@ -188,7 +212,7 @@ public class PostService {
         response.setPostPicturePath(picturePath);
         response.setLikeCount(likeCount);
         response.setLikeClick(isLiked);
-        response.setComments(comments);
+        response.setComments(commentDtos);
 
         return response;
     }
@@ -196,33 +220,80 @@ public class PostService {
     /**
      * 댓글 좋아요 추가
      */
-    public void addCommentLike(Long postCommentNumber, Users user) {
+    @Transactional
+    public Long addCommentLike(Long postCommentNumber, Long userNumber) throws UserNotFoundException, PostCommentNotFoundException {
+        Users user = userJpaRepository.findById(userNumber).orElseThrow(UserNotFoundException::new);
+
         PostComment postComment = postCommentJpaRepository.findById(postCommentNumber)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+                .orElseThrow(PostCommentNotFoundException::new);
 
         // 중복 좋아요 방지
         if (postCommentLikeJpaRepository.existsByPostCommentAndUser(postComment, user)) {
             throw new IllegalArgumentException("이미 좋아요를 누른 댓글입니다.");
         }
 
-        // 좋아요 추가
-        CommentLike commentLike = new CommentLike(postComment, user);
+        // 3. 좋아요 생성 및 연관관계 설정
+        CommentLike commentLike = CommentLike.createCommentLike(user);
+        postComment.addLike(commentLike);
+
+        // 4. 저장
         postCommentLikeJpaRepository.save(commentLike);
+
+        return commentLike.getCommentLikeNumber();
     }
 
     /**
      * 댓글 좋아요 취소
      */
-    public void canceCommentlLike(Long postCommentNumber, Users user) {
+    @Transactional
+    public void cancelCommentLike(Long postCommentNumber, Long userNumber) throws PostCommentNotFoundException, UserNotFoundException {
         PostComment postComment = postCommentJpaRepository.findById(postCommentNumber)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+                .orElseThrow(PostCommentNotFoundException::new);
+
+        Users user = userJpaRepository.findById(userNumber)
+                .orElseThrow(UserNotFoundException::new);
 
         if (!postCommentLikeJpaRepository.existsByPostCommentAndUser(postComment, user)) {
             throw new IllegalArgumentException("좋아요를 누르지 않은 댓글입니다.");
         }
 
-        // 좋아요 취소
-        postCommentLikeJpaRepository.deleteByPostCommentAndUser(postComment, user);
+        // 2. 해당 사용자의 좋아요 엔티티 찾기
+        CommentLike commentLike = postComment.getLikes().stream()
+                .filter(like -> like.getUser().getUserNumber().equals(userNumber))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("좋아요가 존재하지 않습니다."));
+
+        postComment.getLikes().remove(commentLike);
+        postCommentLikeJpaRepository.delete(commentLike);
+    }
+
+    public List<Post> getPopularPostsByGroup(Long groupNumber) throws Exception {
+        List<Post> topLikedPosts = null;
+
+        try {
+            // 인기 게시물 최대 4개
+            Pageable top4 = PageRequest.of(0, 4);
+            topLikedPosts = postJpaRepository.findTopLikedPostsByGroup(groupNumber, top4);
+
+            if (topLikedPosts.size() < 4) {
+                // 부족한 경우 최신 게시물로 채우기
+                List<Long> excludedPostNumbers = topLikedPosts.stream()
+                        .map(Post::getPostNumber)
+                        .toList();
+                Pageable remainingPostsCount = PageRequest.of(0, 4 - topLikedPosts.size());
+                List<Post> latestPosts = postJpaRepository.findLatestPostsByGroupExcluding(groupNumber, excludedPostNumbers, remainingPostsCount);
+
+                topLikedPosts.addAll(latestPosts);
+            }
+        } catch (Exception e) {
+            throw new Exception();
+        }
+
+        return topLikedPosts;
+    }
+
+    public List<Post> getLatestPostsByGroup(Long groupNumber) {
+        return postJpaRepository.findLatestPostsByGroup(groupNumber);
     }
 
 }
