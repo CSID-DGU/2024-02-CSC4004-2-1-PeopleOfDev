@@ -1,0 +1,12 @@
+<!-- res/drawable/calendar_selected_day.xml -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke
+                android:width="2dp"
+                android:color="#14CC7F" />
+            <corners android:radius="64dp" />
+        </shape>
+    </item>
+</selector>
