@@ -1,4 +1,4 @@
-package com.project.myapplication;
+package com.example.momentup;
 
 import android.app.Dialog;
 import android.content.Context;

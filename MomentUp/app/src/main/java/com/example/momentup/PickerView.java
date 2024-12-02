@@ -1,4 +1,4 @@
-package com.project.myapplication;
+package com.example.momentup;
 
 import java.util.ArrayList;
 import java.util.List;

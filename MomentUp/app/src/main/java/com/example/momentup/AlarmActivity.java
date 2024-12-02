@@ -1,13 +1,11 @@
-package com.project.myapplication;
+package com.example.momentup;
 
 import android.annotation.SuppressLint;
-import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.text.util.Linkify;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,7 +24,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
