@@ -3,6 +3,7 @@ package com.example.momentup
 import android.content.Context
 
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.style.ForegroundColorSpan
 import android.widget.TextView
@@ -37,6 +38,13 @@ class CalendarActivity : AppCompatActivity() {
             val selectedDate = "${date.day}일 업로드"
             textView.text = selectedDate
         })
+        // 업로드된 날짜 리스트
+        val uploadDates = setOf(
+            CalendarDay.from(2024, 12, 1),
+            CalendarDay.from(2024, 12, 5)
+        )
+        // 업로드 기록 데코레이터 추가
+        calendarView.addDecorator(UploadDayDecorator(this, uploadDates))
     }
 
     private fun setupCalendarView() {
@@ -82,10 +90,16 @@ class CalendarActivity : AppCompatActivity() {
 
     // 선택된 날짜의 배경 설정
     private inner class DayDecorator(context: Context) : DayViewDecorator {
-        private val drawable = ContextCompat.getDrawable(context, R.drawable.calendar_selector)
-        override fun shouldDecorate(day: CalendarDay): Boolean = true
+        private val drawable = ContextCompat.getDrawable(context, R.drawable.calendar_selected_day)
+
+        override fun shouldDecorate(day: CalendarDay): Boolean = true // 필요한 경우 조건 추가 가능
+
         override fun decorate(view: DayViewFacade) {
+            // 선택된 날짜 배경을 설정
             view.setSelectionDrawable(drawable!!)
+
+            // 글꼴 색상을 #14CC7F로 설정
+            view.addSpan(object : ForegroundColorSpan(Color.parseColor("#14CC7F")) {})
         }
     }
 
@@ -98,6 +112,59 @@ class CalendarActivity : AppCompatActivity() {
             view?.setBackgroundDrawable(drawable!!)
         }
     }
+
+    // 업로드 된 기록이 있는 날의 배경 설정
+    private inner class UploadDayDecorator(
+        context: Context,
+        private val uploadDays: Set<CalendarDay>
+    ) : DayViewDecorator {
+
+        private val drawable = ContextCompat.getDrawable(context, R.drawable.calendar_uploaded_day)
+
+        override fun shouldDecorate(day: CalendarDay): Boolean {
+            // 업로드 기록이 있는 날짜인지 확인
+            return uploadDays.contains(day)
+        }
+
+        override fun decorate(view: DayViewFacade) {
+            // XML에 정의된 배경을 설정
+            view.setBackgroundDrawable(drawable!!)
+
+            // 글꼴 색상을 흰색으로 설정
+            view.addSpan(object : ForegroundColorSpan(Color.WHITE) {})
+        }
+    }
+
+    //업로드 기록이 없는 날짜에 X표시 추가
+    private inner class MissingUploadDecorator(
+        context: Context,
+        private val uploadDays: Set<CalendarDay>
+    ) : DayViewDecorator {
+
+        private val today: CalendarDay = CalendarDay.today()
+        private val drawable = ContextCompat.getDrawable(context, R.drawable.calendar_red_x)
+
+        override fun shouldDecorate(day: CalendarDay): Boolean {
+            // 오늘 이전 날짜이며 업로드 기록이 없는 경우 적용
+            return isBefore(day, today) && !uploadDays.contains(day)
+        }
+
+        override fun decorate(view: DayViewFacade) {
+            // X 표시 추가
+            view.setBackgroundDrawable(drawable!!)
+        }
+
+        // 날짜 비교 함수
+        private fun isBefore(day1: CalendarDay, day2: CalendarDay): Boolean {
+            return when {
+                day1.year < day2.year -> true
+                day1.year == day2.year && day1.month < day2.month -> true
+                day1.year == day2.year && day1.month == day2.month && day1.day < day2.day -> true
+                else -> false
+            }
+        }
+    }
+
 
     // 이번 달이 아닌 날짜를 비활성화
     private inner class SelectedMonthDecorator(private val selectedMonth: Int) : DayViewDecorator {
