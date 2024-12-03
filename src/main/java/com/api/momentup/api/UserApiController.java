@@ -1,5 +1,6 @@
 package com.api.momentup.api;
 
+import com.api.momentup.domain.UserProfile;
 import com.api.momentup.dto.ApiResult;
 import com.api.momentup.dto.ResultType;
 import com.api.momentup.dto.group.response.HomeGroupsDto;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -164,7 +166,7 @@ public class UserApiController {
     @DeleteMapping("/follow")
     public ApiResult unFollow(@RequestBody FollowRequest request) {
         try {
-            userService.unfollow(request.getOwnUserNumber(), request.getTargetUserNumber());
+            userService.unfollow(request.getTargetUserNumber(), request.getOwnUserNumber());
 
             return ApiResult.success(null);
         }  catch (UserNotFoundException e) {
@@ -190,9 +192,13 @@ public class UserApiController {
             List<Users> followingList = userService.getFollowingList(userNumber);
 
             List<FollowingsDto> result = followingList.stream()
-                    .map(u ->
-                            new FollowingsDto(u.getUserNumber(), u.getUserId(), u.getUserProfile().getPicturePath())
-                    ).toList();
+                    .map(u -> new FollowingsDto(
+                            u.getUserNumber(),
+                            u.getUserId(),
+                            Optional.ofNullable(u.getUserProfile()) // UserProfile 객체가 null 가능성을 Optional로 감싸기
+                                    .map(UserProfile::getPicturePath) // UserProfile이 null이 아니면 getPicturePath 호출
+                                    .orElse("") // UserProfile이 null이거나 PicturePath가 null이면 빈 문자열 반환
+                    )).toList();
 
             return ApiResult.success(result);
         } catch (Exception e) {

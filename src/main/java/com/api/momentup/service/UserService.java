@@ -216,8 +216,15 @@ public class UserService {
         for (Users follower : allFollowers) {
             boolean isMutualFollow = user.getFollowing().stream()
                     .anyMatch(f -> f.getFollowing().equals(follower));
+
+            String userProfilePath = "";
+
+            if(follower.getUserProfile() != null) {
+                userProfilePath = follower.getUserProfile().getPicturePath();
+            }
+
             followers.add(new FollowersDto(follower.getUserNumber(), follower.getUserId(),
-                    follower.getUserProfile().getPicturePath() , isMutualFollow));
+                    userProfilePath , isMutualFollow));
         }
 
         return followers;
