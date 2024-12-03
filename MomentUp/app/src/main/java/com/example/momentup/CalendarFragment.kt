@@ -1,56 +1,64 @@
 package com.example.momentup
 
 import android.content.Context
-
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.style.ForegroundColorSpan
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.core.content.ContextCompat
-import com.example.momentup.databinding.ActivityCalendarBinding
+import com.example.momentup.databinding.FragmentCalendarBinding
 import com.prolificinteractive.materialcalendarview.*
-import com.prolificinteractive.materialcalendarview.format.DayFormatter
 import com.prolificinteractive.materialcalendarview.format.TitleFormatter
-import java.time.DayOfWeek
 import org.threeten.bp.LocalDate
 
+class CalendarFragment : Fragment() {
 
-class CalendarActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityCalendarBinding
+    private lateinit var binding: FragmentCalendarBinding
 
     // 선택된 날짜 변수
     private var selectedStartDate: LocalDate? = null
     private var selectedEndDate: LocalDate? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityCalendarBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setContentView(R.layout.activity_calendar)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Fragment 레이아웃 설정
+        binding = FragmentCalendarBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         // CalendarView 초기화 및 설정
         setupCalendarView()
-        val calendarView = findViewById<MaterialCalendarView>(R.id.calendar_view)
-        val textView = findViewById<TextView>(R.id.textView)
+
+        val calendarView = binding.calendarView
+        val textView = binding.textView
+
         calendarView.setOnDateChangedListener(OnDateSelectedListener { _, date, _ ->
             val selectedDate = "${date.day}일 업로드"
             textView.text = selectedDate
         })
+
         // 업로드된 날짜 리스트
         val uploadDates = setOf(
             CalendarDay.from(2024, 12, 1),
             CalendarDay.from(2024, 12, 5)
         )
+
         // 업로드 기록 데코레이터 추가
-        calendarView.addDecorator(UploadDayDecorator(this, uploadDates))
+        calendarView.addDecorator(UploadDayDecorator(requireContext(), uploadDates))
     }
 
     private fun setupCalendarView() {
         // 데코레이터 초기화
-        val dayDecorator = DayDecorator(this)
-        val todayDecorator = TodayDecorator(this)
+        val dayDecorator = DayDecorator(requireContext())
+        val todayDecorator = TodayDecorator(requireContext())
         val sundayDecorator = SundayDecorator()
         val saturdayDecorator = SaturdayDecorator()
         var selectedMonthDecorator = SelectedMonthDecorator(CalendarDay.today().month)
@@ -85,7 +93,6 @@ class CalendarActivity : AppCompatActivity() {
             selectedMonthDecorator = SelectedMonthDecorator(date.month)
             binding.calendarView.addDecorators(dayDecorator, todayDecorator, sundayDecorator, saturdayDecorator, selectedMonthDecorator)
         }
-
     }
 
     // 선택된 날짜의 배경 설정
@@ -107,7 +114,9 @@ class CalendarActivity : AppCompatActivity() {
     private class TodayDecorator(context: Context) : DayViewDecorator {
         private val drawable = ContextCompat.getDrawable(context, R.drawable.calendar_circle_gray)
         private val today = CalendarDay.today()
+
         override fun shouldDecorate(day: CalendarDay?): Boolean = day == today
+
         override fun decorate(view: DayViewFacade?) {
             view?.setBackgroundDrawable(drawable!!)
         }
@@ -135,49 +144,18 @@ class CalendarActivity : AppCompatActivity() {
         }
     }
 
-    //업로드 기록이 없는 날짜에 X표시 추가
-    private inner class MissingUploadDecorator(
-        context: Context,
-        private val uploadDays: Set<CalendarDay>
-    ) : DayViewDecorator {
-
-        private val today: CalendarDay = CalendarDay.today()
-        private val drawable = ContextCompat.getDrawable(context, R.drawable.calendar_red_x)
-
-        override fun shouldDecorate(day: CalendarDay): Boolean {
-            // 오늘 이전 날짜이며 업로드 기록이 없는 경우 적용
-            return isBefore(day, today) && !uploadDays.contains(day)
-        }
-
-        override fun decorate(view: DayViewFacade) {
-            // X 표시 추가
-            view.setBackgroundDrawable(drawable!!)
-        }
-
-        // 날짜 비교 함수
-        private fun isBefore(day1: CalendarDay, day2: CalendarDay): Boolean {
-            return when {
-                day1.year < day2.year -> true
-                day1.year == day2.year && day1.month < day2.month -> true
-                day1.year == day2.year && day1.month == day2.month && day1.day < day2.day -> true
-                else -> false
-            }
-        }
-    }
-
-
     // 이번 달이 아닌 날짜를 비활성화
     private inner class SelectedMonthDecorator(private val selectedMonth: Int) : DayViewDecorator {
         override fun shouldDecorate(day: CalendarDay): Boolean = day.month != selectedMonth
+
         override fun decorate(view: DayViewFacade) {
-            view.addSpan(ForegroundColorSpan(ContextCompat.getColor(this@CalendarActivity, R.color.black)))
+            view.addSpan(ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.black)))
         }
     }
 
     // 일요일의 색상 설정
     private class SundayDecorator : DayViewDecorator {
         override fun shouldDecorate(day: CalendarDay): Boolean {
-            // `day.day` is the numeric representation of the day (1 to 7), with Sunday being 7
             return day.day == 7 // 7 corresponds to Sunday
         }
 
@@ -189,7 +167,6 @@ class CalendarActivity : AppCompatActivity() {
     // 토요일의 색상 설정
     private class SaturdayDecorator : DayViewDecorator {
         override fun shouldDecorate(day: CalendarDay): Boolean {
-            // `day.day` is the numeric representation of the day (1 to 7), with Saturday being 6
             return day.day == 6 // 6 corresponds to Saturday
         }
 
@@ -198,4 +175,3 @@ class CalendarActivity : AppCompatActivity() {
         }
     }
 }
-
