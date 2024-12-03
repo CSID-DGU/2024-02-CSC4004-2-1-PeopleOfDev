@@ -15,8 +15,11 @@ class HomeScreenActivity : AppCompatActivity() {
         binding = ActivityHomeScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 기본으로 표시할 Fragment 설정
-        replaceFragment(HomeFragment())
+        // 기본 프래그먼트 설정
+        if (savedInstanceState == null) {
+            replaceFragment(HomeFragment())
+            binding.bottomNavigation.selectedItemId = R.id.nav_home
+        }
 
         // BottomNavigationView 동작 설정
         binding.bottomNavigation.setOnItemSelectedListener { item ->
@@ -46,11 +49,19 @@ class HomeScreenActivity : AppCompatActivity() {
         }
     }
 
-    // Fragment 교체를 위한 함수
+    // Fragment 교체 및 BottomNavigationView와 동기화
     private fun replaceFragment(fragment: Fragment) {
-        val fragmentManager = supportFragmentManager
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.fragment_container, fragment)
-        fragmentTransaction.commit()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .commit()
+
+        // 해당 Fragment에 맞는 BottomNavigation 메뉴를 선택 상태로 설정
+        when (fragment) {
+            is HomeFragment -> binding.bottomNavigation.selectedItemId = R.id.nav_home
+            is CalendarFragment -> binding.bottomNavigation.selectedItemId = R.id.nav_calendar
+            is CameraFragment -> binding.bottomNavigation.selectedItemId = R.id.nav_camera
+            is ChallengesFragment -> binding.bottomNavigation.selectedItemId = R.id.nav_challenges
+            is ProfileFragment -> binding.bottomNavigation.selectedItemId = R.id.nav_profile
+        }
     }
 }

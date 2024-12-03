@@ -78,4 +78,16 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     implementation ("com.google.firebase:firebase-messaging")
     implementation ("com.google.firebase:firebase-analytics")
+
+    val cameraxVersion = "1.3.0" // 최신 버전 확인
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+
+    // Optional: CameraX Extensions (for advanced camera effects)
+    implementation("androidx.camera:camera-extensions:$cameraxVersion")
+
+    // Coroutines (optional, for handling async tasks)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 }

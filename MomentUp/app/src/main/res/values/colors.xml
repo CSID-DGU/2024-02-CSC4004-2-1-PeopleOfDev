@@ -11,4 +11,7 @@
     <color name="gray5">#ECEFF1</color>
     <color name="gray6">#F9F9FA</color>
     <color name="gray7">#FFFFFF</color>
+
+    <color name="colorPrimary">#FF9800</color> <!-- 주황색 -->
+    <color name="colorUnselected">#808080</color> <!-- 회색 -->
 </resources>
