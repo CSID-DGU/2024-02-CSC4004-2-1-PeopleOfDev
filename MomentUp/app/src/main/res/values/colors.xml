@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="primary">#FF8417</color>
+    <color name="gray1">#15222F</color>
+    <color name="gray2">#333D4B</color>
+    <color name="gray3">#7D8896</color>
+    <color name="gray4">#CCD3DB</color>
+    <color name="gray5">#ECEFF1</color>
+    <color name="gray6">#F9F9FA</color>
+    <color name="gray7">#FFFFFF</color>
+
+    <color name="colorPrimary">#FF9800</color> <!-- 주황색 -->
+    <color name="colorUnselected">#808080</color> <!-- 회색 -->
+</resources>
