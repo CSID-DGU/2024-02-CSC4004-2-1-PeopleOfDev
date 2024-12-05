@@ -113,7 +113,7 @@ public class NotificationActivity extends AppCompatActivity {
                         }
                     });
                 } else {
-                    headImg.setImageDrawable(ContextCompat.getDrawable(itemView.getContext(), R.drawable.camera));
+                    headImg.setImageDrawable(ContextCompat.getDrawable(itemView.getContext(), R.drawable.ic_camera_mono));
                     optBtnLl.setVisibility(View.GONE);
                 }
             }

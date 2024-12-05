@@ -6,7 +6,7 @@ import androidx.fragment.app.Fragment
 import com.example.momentup.databinding.ActivityHomeScreenBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
-class HomeScreenActivity : AppCompatActivity() {
+/*class HomeScreenActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeScreenBinding
 
@@ -64,4 +64,4 @@ class HomeScreenActivity : AppCompatActivity() {
             is ProfileFragment -> binding.bottomNavigation.selectedItemId = R.id.nav_profile
         }
     }
-}
+}*/
