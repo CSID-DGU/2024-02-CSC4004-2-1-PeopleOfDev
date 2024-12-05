@@ -65,8 +65,11 @@ public class GroupService {
     }
 
     @Transactional
-    public Long createGroup(String groupName, String hashTag, String groupIntro) {
-        Groups group = Groups.createGroup(groupName, hashTag, groupIntro);
+    public Long createGroup(String groupName, String hashTag, String groupIntro, Long userNumber) throws UserNotFoundException {
+        Users user = userJpaRepository.findById(userNumber)
+                .orElseThrow(UserNotFoundException::new);
+
+        Groups group = Groups.createGroup(groupName, hashTag, groupIntro, user);
 
         groupJpaRepository.save(group);
 
@@ -74,8 +77,11 @@ public class GroupService {
     }
 
     @Transactional
-    public Long createGroup(String groupName, String hashTag, String groupIntro, MultipartFile groupPicture) throws Exception {
-        Groups group = Groups.createGroup(groupName, hashTag, groupIntro);
+    public Long createGroup(String groupName, String hashTag, String groupIntro, MultipartFile groupPicture, Long userNumber) throws Exception {
+        Users user = userJpaRepository.findById(userNumber)
+                .orElseThrow(UserNotFoundException::new);
+
+        Groups group = Groups.createGroup(groupName, hashTag, groupIntro, user);
         String usbDir = "group";
 
         try {

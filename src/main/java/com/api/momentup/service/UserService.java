@@ -38,6 +38,10 @@ public class UserService {
     private final EmailService emailService;
     private final UserGroupJpaRepository userGroupJpaRepository;
     private final UserNotificationJpaRepository userNotificationJpaRepository;
+    private final UserTokenJpaRepository userTokenJpaRepository;
+
+    private final FcmService fcmService;
+
 
     // 업로드 디렉토리 (application.properties에서 설정)
     @Value("${file.upload-dir}")
@@ -163,12 +167,29 @@ public class UserService {
     public Long requestFollow(Long ownUserNumber, Long targetUserNumber) throws UserNotFoundException {
         Users findUser = userJpaRepository.findById(ownUserNumber)
                 .orElseThrow(UserNotFoundException::new);
+
+        Users receiver = userJpaRepository.findById(targetUserNumber)
+                .orElseThrow(UserNotFoundException::new);
+
         String title = "팔로우 신청";
         String content = findUser.getUserId() + "님이 팔로우를 요청하였습니다.";
-        LocalTime notificationTime = LocalTime.now().plusMinutes(1);
         UserNotification saveNotification = UserNotification.createUserNotification(NotificationType.FOLLOW,
-                targetUserNumber, title, content, notificationTime, "", findUser);
+                targetUserNumber, title, content, findUser, null);
         userNotificationJpaRepository.save(saveNotification);
+
+        // 대상 사용자의 FCM 토큰 가져오기
+        List<UserToken> userTokens = userTokenJpaRepository.findByUsers(receiver);
+
+        // FCM 알림 전송
+        for (UserToken userToken : userTokens) {
+            fcmService.sendMessageToToken(
+                    title,
+                    content,
+                    userToken.getFcmToken(),
+                    NotificationType.FOLLOW,
+                    saveNotification.getNotificationNumber()
+            );
+        }
 
         return saveNotification.getNotificationNumber();
     }
@@ -239,5 +260,26 @@ public class UserService {
         return groupsByUserNumber;
     }
 
+    @Transactional
+    public void saveOrUpdateUserToken(Long userNumber, String fcmToken) throws UserNotFoundException {
+        Users user = userJpaRepository.findById(userNumber)
+                .orElseThrow(UserNotFoundException::new);
+
+        // 기존 토큰 조회
+        Optional<UserToken> existingToken = userTokenJpaRepository.findByUsersAndFcmToken(user, fcmToken);
+
+        if (existingToken.isPresent()) {
+            // 기존 토큰이 있으면 업데이트
+            UserToken token = existingToken.get();
+            token.setLastUpdated(LocalDateTime.now());
+            userTokenJpaRepository.save(token);
+        } else {
+            // 새로운 토큰 저장
+            UserToken newToken = UserToken.createUserToken(user, fcmToken);
+
+            userTokenJpaRepository.save(newToken);
+        }
+
+    }
 
 }

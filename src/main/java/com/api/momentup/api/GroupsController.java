@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/group")
 @RequiredArgsConstructor
 @Tag(name = "Groups API", description = "그룹 관련 API")
-public class GroupsController  {
+public class GroupsController {
     private final GroupService groupService;
     private final PostService postService;
 
@@ -86,15 +86,18 @@ public class GroupsController  {
     @PostMapping()
     public ApiResult createGroup(@RequestPart("group") CreateGroupRequest request, @RequestPart(value = "profile", required = false) MultipartFile groupPicture) {
         Long groupNumber = -1L;
+        try {
+            if (groupPicture == null) {
+                groupNumber = groupService.createGroup(request.getGroupName(), request.getHashTag(), request.getGroupIntro(), request.getUserNumber());
+            } else {
 
-        if(groupPicture == null) {
-            groupNumber = groupService.createGroup(request.getGroupName(), request.getHashTag(), request.getGroupIntro());
-        } else  {
-            try {
-                groupNumber = groupService.createGroup(request.getGroupName(), request.getHashTag(), request.getGroupIntro(), groupPicture);
-            } catch (Exception e) {
-                return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
+                groupNumber = groupService.createGroup(request.getGroupName(), request.getHashTag(), request.getGroupIntro(), groupPicture, request.getUserNumber());
             }
+
+        } catch (UserNotFoundException e) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
+        } catch (Exception e) {
+            return ApiResult.error(ResultType.FAIL.getCode(), ResultType.FAIL.getMessage());
         }
 
         return ApiResult.success(groupNumber);
@@ -126,10 +129,10 @@ public class GroupsController  {
 
             List<GroupPopularPostsDto> collect = groupPopularPosts.stream()
                     .map(p -> new GroupPopularPostsDto(
-                        p.getPostNumber(),
-                        p.getContent(),
-                        p.getWriter().getUserId(),
-                        p.getPostPicture().getPicturePath()
+                            p.getPostNumber(),
+                            p.getContent(),
+                            p.getWriter().getUserId(),
+                            p.getPostPicture().getPicturePath()
                     ))
                     .toList();
 

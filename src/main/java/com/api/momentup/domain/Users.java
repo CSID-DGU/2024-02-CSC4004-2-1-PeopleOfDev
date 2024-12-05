@@ -25,13 +25,21 @@ public class Users {
 
     // User가 속한 그룹들
     @OneToMany(mappedBy = "users", cascade = CascadeType.REMOVE)
-    private List<UserGroups> userGroups;
+    private List<UserGroups> userGroups = new ArrayList<>();;
 
     @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL)
     private List<Follow> following = new ArrayList<>(); // 내가 팔로우한 사람들
 
     @OneToMany(mappedBy = "following", cascade = CascadeType.ALL)
     private List<Follow> followers = new ArrayList<>(); // 나를 팔로우한 사람들
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Calendar> calendars = new ArrayList<>();;
+
+    public void addCalendar(Calendar calendar) {
+        this.calendars.add(calendar); // Users의 리스트에 추가
+        calendar.setUser(this);      // Calendar의 Users도 동기화
+    }
 
     public void setUserProfile(UserProfile userProfile) {
         this.userProfile = userProfile;

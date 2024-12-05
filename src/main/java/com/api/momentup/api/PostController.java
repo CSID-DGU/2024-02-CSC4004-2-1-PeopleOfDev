@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,13 +42,12 @@ public class PostController {
             }
 
             return ApiResult.success(postNumber);
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | GroupNotFoundException e) {
             return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
-        } catch (GroupNotFoundException e) {
-            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
-        } catch (GroupNotJoinException e) {
-            return ApiResult.error(ResultType.FAIL.getCode(), ResultType.FAIL.getMessage());
-        } catch (Exception e) {
+        } catch (GroupNotJoinException | NotificationNotFoundException e) {
+            return ApiResult.error(ResultType.FAIL.getCode(), e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
             return ApiResult.error(ResultType.FAIL.getCode(), ResultType.FAIL.getMessage());
         }
     }

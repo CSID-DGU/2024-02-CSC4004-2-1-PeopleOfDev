@@ -19,7 +19,7 @@ public class Post {
 
 
     @ManyToOne
-    @JoinColumn(name = "user_number")
+    @JoinColumn(name = "writer_user_number")
     private Users writer;
 
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)

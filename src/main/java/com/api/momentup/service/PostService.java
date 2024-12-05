@@ -1,6 +1,8 @@
 package com.api.momentup.service;
 
 import com.api.momentup.domain.*;
+import com.api.momentup.domain.Calendar;
+import com.api.momentup.dto.ResultType;
 import com.api.momentup.dto.comment.response.CommentsDto;
 import com.api.momentup.dto.post.response.PostDetailDto;
 import com.api.momentup.exception.*;
@@ -14,11 +16,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.xml.stream.events.Comment;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.api.momentup.utils.AlarmUtils.isNotificationWithinChallengePeriod;
 
 @Service
 @Transactional(readOnly = true)
@@ -30,15 +38,19 @@ public class PostService {
     private final PostCommentJpaRepository postCommentJpaRepository;
     private final GroupJpaRepository groupJpaRepository;
     private final PostCommentLikeJpaRepository postCommentLikeJpaRepository;
+    private final UserNotificationJpaRepository userNotificationJpaRepository;
+    private final ChallengeJpaRepository challengeJpaRepository;
+    private final NotificationScheduler notificationScheduler;
+    private final UserGroupJpaRepository userGroupJpaRepository;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
 
     @Transactional
-    public Long writePost(String content, MultipartFile file, Long userNumber) throws Exception {
+    public Long writePost(String content, MultipartFile file, Long userNumber) throws UserNotFoundException, IOException {
         String usbDir = "post";
         Users findUser = userJpaRepository.findById(userNumber)
-                .orElseThrow(GroupNotFoundException::new);
+                .orElseThrow(UserNotFoundException::new);
 
         Post post = Post.createPost(content, findUser);
 
@@ -53,35 +65,59 @@ public class PostService {
 
             String saveFilePath = "/uploaded/photos/"+ usbDir+ "/" + filename;
 
+            // 알림 찾기
+            UserNotification latestNotification = findLatestNotification(findUser, null)
+                    .orElseThrow(NotificationNotFoundException::new);
+
             PostPicture savePostPicture = PostPicture.createPostPicture(post, saveFilePath, originalFilename);
-
             post.setPostPicture(savePostPicture);
-
             postJpaRepository.save(post);
-        } catch (Exception e) {
+
+            // 성공 실패 여부 판단
+            LocalDateTime notificationTime = latestNotification.getNotificationTime();
+            LocalDateTime writeDate = post.getWriteDate();
+
+            boolean result = isWithinFiveMinutes(notificationTime, writeDate);
+            CalendarResultType resultType = result ? CalendarResultType.SUCCESS : CalendarResultType.FAIL;
+            Calendar calendar = Calendar.createCalendar(resultType);
+            findUser.addCalendar(calendar);
+
+            List<Challenge> findChallenges = challengeJpaRepository.findByUsersAndGroups(findUser, null);
+
+            for(Challenge challenge : findChallenges) {
+                boolean isWithinRange = isNotificationWithinChallengePeriod(latestNotification, challenge);
+
+                if(isWithinRange) {
+                    ChallengeDetail challengeDetail = ChallengeDetail.createChallengeDetail(resultType);
+                    challenge.addChallengeDetail(challengeDetail);
+                }
+            }
+
+            // 스케줄러 취소
+            notificationScheduler.cancelTask(latestNotification.getNotificationNumber());
+        } catch (IOException | NotificationNotFoundException e) {
             e.printStackTrace();
-            throw new Exception();
+            throw new IOException();
         }
 
         return post.getPostNumber();
     }
 
     @Transactional
-    public Long writeGroupPost(String content, MultipartFile file, Long userNumber, Long groupNumber) throws Exception {
+    public Long writeGroupPost(String content, MultipartFile file, Long userNumber, Long groupNumber) throws GroupNotFoundException, GroupNotJoinException, UserNotFoundException, IOException, NotificationNotFoundException {
         String usbDir = "post";
         Users findUser = userJpaRepository.findById(userNumber)
+                .orElseThrow(UserNotFoundException::new);
+
+        Groups findGroup = groupJpaRepository.findById(groupNumber)
                 .orElseThrow(GroupNotFoundException::new);
 
-        List<Groups> matchingGroups = findUser.getUserGroups().stream()
-                .map(UserGroups::getGroups)
-                .filter(group -> group.getGroupNumber().equals(groupNumber))
-                .collect(Collectors.toList());
-
-        if (matchingGroups.isEmpty()) {
-            throw new GroupNotJoinException();
+        if(!Objects.equals(findGroup.getCreator().getUserNumber(), userNumber)) {
+            UserGroups findUserGroups = userGroupJpaRepository.findByGroupsAndUsers(findGroup, findUser)
+                    .orElseThrow(GroupNotJoinException::new);
         }
 
-        Post post = Post.createPost(content, findUser, matchingGroups.get(0));
+        Post post = Post.createPost(content, findUser, findGroup);
 
         try {
             String originalFilename = file.getOriginalFilename();
@@ -94,17 +130,58 @@ public class PostService {
 
             String saveFilePath = "/uploaded/photos/"+ usbDir+ "/" + filename;
 
+            // 알림 정보 찾기
+            UserNotification latestNotification = findLatestNotification(findUser, findGroup)
+                    .orElseThrow(NotificationNotFoundException::new);
+
+            // 게시물 작성
             PostPicture savePostPicture = PostPicture.createPostPicture(post, saveFilePath, originalFilename);
-
             post.setPostPicture(savePostPicture);
-
             postJpaRepository.save(post);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception();
+
+            // 성공 실패 여부 판단
+            LocalDateTime notificationTime = latestNotification.getNotificationTime();
+            LocalDateTime writeDate = post.getWriteDate();
+
+            boolean result = isWithinFiveMinutes(notificationTime, writeDate);
+            CalendarResultType resultType = result ? CalendarResultType.SUCCESS : CalendarResultType.FAIL;
+            Calendar calendar = Calendar.createCalendar(resultType);
+            findUser.addCalendar(calendar);
+
+            List<Challenge> findChallenges = challengeJpaRepository.findByUsersAndGroups(findUser, findGroup);
+
+            for(Challenge challenge : findChallenges) {
+                boolean isWithinRange = isNotificationWithinChallengePeriod(latestNotification, challenge);
+
+                if(isWithinRange) {
+                    ChallengeDetail challengeDetail = ChallengeDetail.createChallengeDetail(resultType);
+                    challenge.addChallengeDetail(challengeDetail);
+                }
+            }
+
+            // 스케줄러 취소
+            notificationScheduler.cancelTask(latestNotification.getNotificationNumber());
+        } catch (IOException e) {
+            throw new IOException();
         }
 
         return post.getPostNumber();
+    }
+
+    public Optional<UserNotification> findLatestNotification(Users user, Groups group) {
+        return userNotificationJpaRepository.findLatestNotificationByUserAndGroup(
+                user, group, NotificationType.POST);
+    }
+
+    public static boolean isWithinFiveMinutes(LocalDateTime notificationTime, LocalDateTime writeDate) {
+        // Duration between the two LocalDateTime instances
+        Duration duration = Duration.between(notificationTime, writeDate);
+
+        // Absolute value of the duration in minutes
+        long differenceInMinutes = Math.abs(duration.toMinutes());
+
+        // Return true if the difference is 5 minutes or less
+        return differenceInMinutes <= 5;
     }
 
     @Transactional

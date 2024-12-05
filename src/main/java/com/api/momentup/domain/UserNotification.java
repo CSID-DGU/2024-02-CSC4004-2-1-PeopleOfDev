@@ -3,6 +3,7 @@ package com.api.momentup.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -24,10 +25,13 @@ public class UserNotification {
     @JoinColumn(name = "user_number", nullable = false)
     private Users user;
 
-    private Long targetNumber;
-    private String userFcmToken;
+    @ManyToOne
+    @JoinColumn(name = "group_number", nullable = true)
+    private Groups group;
 
-    private LocalTime notificationTime;
+    private Long targetNumber;
+
+    private LocalDateTime notificationTime;
 
 
     public static UserNotification createUserNotification(
@@ -35,17 +39,16 @@ public class UserNotification {
             Long targetNumber,
             String title,
             String content,
-            LocalTime  notificationTime,
-            String userFcmToken,
-            Users user) {
+            Users user,
+            Groups group) {
         UserNotification userNotification = new UserNotification();
         userNotification.notificationType = notificationType;
         userNotification.targetNumber = targetNumber;
         userNotification.title = title;
         userNotification.content = content;
-        userNotification.userFcmToken = userFcmToken;
-        userNotification.notificationTime = notificationTime;
+        userNotification.notificationTime = LocalDateTime.now();
         userNotification.user = user;
+        userNotification.group = group;
 
         return userNotification;
     }

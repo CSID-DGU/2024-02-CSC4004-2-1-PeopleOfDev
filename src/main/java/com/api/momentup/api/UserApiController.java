@@ -206,14 +206,15 @@ public class UserApiController {
         }
     }
 
-    @PostMapping("/challenge")
-    public void createChallenge() {
+    @PostMapping("/user-token")
+    public ApiResult addOrUpdateUserToken(@RequestBody UserTokenRequest request) {
+        try {
+            userService.saveOrUpdateUserToken(request.getUserNumber(), request.getFcmToken());
 
-    }
-
-    @DeleteMapping("/challenge")
-    public void removeChallenge() {
-
+            return ApiResult.success(null);
+        }  catch (UserNotFoundException e) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
+        }
     }
 
 }
