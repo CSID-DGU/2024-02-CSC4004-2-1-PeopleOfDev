@@ -131,17 +131,26 @@ public class AlarmActivity extends AppCompatActivity {
         }
 
         private void showTimePickerDialog(int position, boolean start) {
-            TimePickerSelectDialog dialog = new TimePickerSelectDialog(context, (hour, minute) -> {
-                String timeText = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
-                AlarmBean alarmBean = dataList.get(position);
-                if (start) {
-                    alarmBean.startTime = timeText;
-                } else {
-                    alarmBean.endTime = timeText;
-                }
-                notifyItemChanged(position);
-            });
+            TimePickerSelectDialog dialog = new TimePickerSelectDialog(context);
             dialog.show();
+
+            // 확인 버튼 클릭 시 시간 설정
+            dialog.setConfirmClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String timeText = String.format(Locale.getDefault(), "%02d:%02d",
+                            dialog.getHour(),
+                            dialog.getMinute());
+                    AlarmBean alarmBean = dataList.get(position);
+                    if (start) {
+                        alarmBean.startTime = timeText;
+                    } else {
+                        alarmBean.endTime = timeText;
+                    }
+                    notifyItemChanged(position);
+                    dialog.dismiss();
+                }
+            });
         }
 
         class AlarmViewHolder extends RecyclerView.ViewHolder {

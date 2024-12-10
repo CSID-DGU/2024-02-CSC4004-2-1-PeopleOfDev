@@ -8,15 +8,15 @@
     android:orientation="horizontal">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_margin="10dp"
-        app:cardCornerRadius="24dp">
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="18dp">
 
         <ImageView
-            android:id="@+id/head_img"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:id="@+id/iv_notification_icon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:src="@drawable/notification_gray_bg" />
 
     </androidx.cardview.widget.CardView>
@@ -28,41 +28,47 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/title"
+            android:id="@+id/tv_notification_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:text="관심을 신청하세요" />
+            android:textColor="@color/gray3"
+            tools:text="팔로우 신청"
+            android:textSize="10sp"/>
 
         <TextView
-            android:id="@+id/content"
+            android:id="@+id/tv_notification_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:layout_marginBottom="10dp"
-            tools:text="Park_Happy 님 팔로우 요청드립니다." />
+            android:textColor="@color/gray2"
+            tools:text="Park_Happy 님이 팔로우를 요청하였습니다."
+            android:textSize="12sp"/>
 
 
         <LinearLayout
             android:id="@+id/opt_btn_ll"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/accept"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#FBEEDF"
-                android:text="수용하다"
-                android:textColor="#F0AD64" />
+                android:backgroundTint="#FFEBD9"
+                android:text="수락"
+                android:textColor="@color/primary"
+                android:textSize="12sp"/>
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/refuse"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:text="거부하다"
-                android:backgroundTint="#EFF1F3"
-                android:textColor="#80858E" />
+                android:layout_marginLeft="5dp"
+                android:text="거절"
+                android:backgroundTint="@color/gray5"
+                android:textColor="@color/gray2"
+                android:textSize="12sp"/>
 
         </LinearLayout>
 

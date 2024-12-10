@@ -1,22 +1,9 @@
 package com.example.momentup;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
+import android.widget.ImageButton;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,128 +11,85 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NotificationActivity extends AppCompatActivity {
+    private ImageButton btnBack;
+    private RecyclerView recyclerNotifications;
+    private NotificationAdapter adapter;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notification);
-        ActionBar supportActionBar = getSupportActionBar();
-        if (supportActionBar != null) {
-            // 복귀 화살표 표시
-            supportActionBar.setDisplayHomeAsUpEnabled(true);
-            supportActionBar.setTitle("咎引");
-        }
 
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // Initialize views
+        initViews();
 
-        List<NotificationBean> dataList = new ArrayList<>();
-        dataList.add(new NotificationBean("관심을 신청하세요", "Park Happy 님 팔로우 요청드립니다.", true));
-        dataList.add(new NotificationBean("관심을 신청하세요", "Park Happy 님 팔로우 요청드립니다.", true));
-        dataList.add(new NotificationBean("김동구", "지금 당신의 순간을 업로드하세요!", false));
-        dataList.add(new NotificationBean("관심을 신청하세요", "Park Happy 님 팔로우 요청드립니다.", true));
-        NotificationRecyclerAdapter notificationRecyclerAdapter = new NotificationRecyclerAdapter(dataList, this);
-        recyclerView.setAdapter(notificationRecyclerAdapter);
-    }
-
-    static class NotificationRecyclerAdapter extends RecyclerView.Adapter<NotificationRecyclerAdapter.NotificationViewHolder> {
-
-        private final List<NotificationBean> dataList;
-        private final Context context;
-
-        public NotificationRecyclerAdapter(List<NotificationBean> dataList, Context context) {
-            this.dataList = dataList;
-            this.context = context;
-        }
-
-        @NonNull
-        @Override
-        public NotificationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View inflate = LayoutInflater.from(context).inflate(R.layout.notification_recycler_item, parent, false);
-            return new NotificationViewHolder(inflate);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
-            NotificationBean notificationBean = dataList.get(position);
-            holder.bind(notificationBean);
-        }
-
-        @Override
-        public int getItemCount() {
-            return dataList.size();
-        }
-
-        class NotificationViewHolder extends RecyclerView.ViewHolder {
-            private TextView titleTv;
-            private TextView contentTv;
-            private LinearLayout optBtnLl;
-            private ImageView headImg;
-            private Button acceptBtn;
-            private Button refuseBtn;
-
-            public NotificationViewHolder(@NonNull View itemView) {
-                super(itemView);
-                titleTv = itemView.findViewById(R.id.title);
-                headImg = itemView.findViewById(R.id.head_img);
-                contentTv = itemView.findViewById(R.id.content);
-                optBtnLl = itemView.findViewById(R.id.opt_btn_ll);
-                acceptBtn = itemView.findViewById(R.id.accept);
-                refuseBtn = itemView.findViewById(R.id.refuse);
+        // Set up back button
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish(); // 액티비티 종료
             }
+        });
 
-            public void bind(NotificationBean item) {
-                titleTv.setText(item.getTitle());
-                contentTv.setText(item.getContent());
-                if (item.applyMessage) {
-                    headImg.setImageDrawable(ContextCompat.getDrawable(itemView.getContext(), R.drawable.notification_gray_bg));
-                    optBtnLl.setVisibility(View.VISIBLE);
-                    acceptBtn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Toast.makeText(itemView.getContext(), "accept", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    refuseBtn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Toast.makeText(itemView.getContext(), "refuse", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else {
-                    headImg.setImageDrawable(ContextCompat.getDrawable(itemView.getContext(), R.drawable.ic_camera_mono));
-                    optBtnLl.setVisibility(View.GONE);
-                }
+        // Set up RecyclerView
+        setupRecyclerView();
+
+        // Load notifications
+        loadNotifications();
+    }
+
+    private void initViews() {
+        btnBack = findViewById(R.id.btn_back);
+        recyclerNotifications = findViewById(R.id.recycler_notifications);
+    }
+
+    private void setupRecyclerView() {
+        recyclerNotifications.setLayoutManager(new LinearLayoutManager(this));
+
+        adapter = new NotificationAdapter(new NotificationAdapter.OnNotificationClickListener() {
+            @Override
+            public void onNotificationClick(NotificationItem notification, int position) {
+                // 알림 클릭 시 처리
+                // 예: 상세 페이지로 이동하거나 처리하는 코드
             }
-        }
+        });
+
+        recyclerNotifications.setAdapter(adapter);
     }
 
-    private static class NotificationBean {
-        String title;
-        String content;
-        private boolean applyMessage;
+    private void loadNotifications() {
+        // 테스트용 더미 데이터 생성
+        List<NotificationItem> notifications = new ArrayList<>();
 
-        public NotificationBean(String title, String content, boolean applyMessage) {
-            this.title = title;
-            this.content = content;
-            this.applyMessage = applyMessage;
-        }
+        notifications.add(new NotificationItem(
+                "새로운 챌린지",
+                "새로운 챌린지가 등록되었습니다.",
+                "방금 전",
+                R.drawable.ic_notification_mono
+        ));
 
-        public String getTitle() {
-            return title;
-        }
+        notifications.add(new NotificationItem(
+                "목표 달성",
+                "오늘의 목표를 달성했습니다! 축하합니다.",
+                "1시간 전",
+                R.drawable.ic_notification_mono
+        ));
 
-        public String getContent() {
-            return content;
-        }
-    }
+        notifications.add(new NotificationItem(
+                "친구 소식",
+                "김민수님이 회원님의 게시물을 좋아합니다.",
+                "2시간 전",
+                R.drawable.ic_notification_mono
+        ));
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        notifications.add(new NotificationItem(
+                "챌린지 알림",
+                "진행 중인 챌린지가 곧 종료됩니다.",
+                "어제",
+                R.drawable.ic_notification_mono
+        ));
+
+        // 어댑터에 데이터 설정
+        adapter.setNotifications(notifications);
     }
 }

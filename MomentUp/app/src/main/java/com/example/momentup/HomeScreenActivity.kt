@@ -1,5 +1,6 @@
 package com.example.momentup
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -14,6 +15,12 @@ class HomeScreenActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 알림 버튼 클릭 리스너 추가
+        binding.btnNotification.setOnClickListener {
+            val intent = Intent(this, NotificationActivity::class.java)
+            startActivity(intent)
+        }
 
         // 기본 프래그먼트 설정
         if (savedInstanceState == null) {

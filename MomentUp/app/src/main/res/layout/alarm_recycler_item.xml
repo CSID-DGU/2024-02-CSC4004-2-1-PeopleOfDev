@@ -7,14 +7,14 @@
     android:layout_marginHorizontal="5dp"
     android:layout_marginTop="10dp"
     android:orientation="vertical"
-    app:cardCornerRadius="8dp">
+    app:cardCornerRadius="12dp">
 
 
     <LinearLayout
         android:id="@+id/root"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#16222F"
+        android:background="@color/gray1"
         android:orientation="vertical"
         android:padding="10dp">
 
@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:textColor="@color/white"
             android:textSize="18sp"
-            tools:text="홍야지의 스포츠 일기" />
+            tools:text="홍아코의 스포츠 일기" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -70,7 +70,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_marginLeft="5dp"
-                android:src="@drawable/delete" />
+                android:src="@drawable/ic_delete" />
 
             <Switch
                 android:id="@+id/switch_controller"

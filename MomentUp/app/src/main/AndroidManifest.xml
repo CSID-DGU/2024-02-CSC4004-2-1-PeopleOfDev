@@ -65,6 +65,10 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.MomentUp" />
 
+        <activity
+            android:name=".NotificationActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
