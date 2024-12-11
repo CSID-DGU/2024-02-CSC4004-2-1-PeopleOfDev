@@ -3,7 +3,7 @@
 
 # yolov5 폴더 무시
 yolov5/
-yolo5s.pt
+yolov5s.pt
 
 # 특정 이미지 파일 무시
 image*.jpg
