@@ -46,44 +46,12 @@
         app:layout_constraintTop_toBottomOf="@id/textView">
 
         <LinearLayout
+            android:id="@+id/uploadContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp">
-
-            <!-- 업로드 아이템들 -->
-            <LinearLayout
-                android:layout_width="140dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="12dp"
-                android:orientation="vertical">
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="140dp"
-                    android:layout_height="180dp"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="0dp">
-
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@color/gray5"
-                        android:scaleType="centerCrop" />
-                </androidx.cardview.widget.CardView>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="김동국의 STUDY"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <!-- 추가 업로드 아이템들은 위의 레이아웃을 복사하여 추가 -->
-
-        </LinearLayout>
+            android:paddingVertical="8dp" />
     </HorizontalScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
