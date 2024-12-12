@@ -12,6 +12,12 @@
     <color name="gray6">#F9F9FA</color>
     <color name="gray7">#FFFFFF</color>
 
-    <color name="colorPrimary">#FF9800</color> <!-- 주황색 -->
-    <color name="colorUnselected">#808080</color> <!-- 회색 -->
+    <color name="unselected">#808080</color> <!-- 회색 -->
+
+    <color name="success">#14CC7F</color>
+    <color name="info">#247AF4</color>
+    <color name="warning">#F49424</color>
+    <color name="error">#F04452</color>
+    <color name="peanut">#B09155</color>
+    <color name="etc">#212B46</color>
 </resources>

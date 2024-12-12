@@ -11,72 +11,79 @@
     <com.prolificinteractive.materialcalendarview.MaterialCalendarView
         android:id="@+id/calendar_view"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_marginHorizontal="24dp"
-        android:theme="@style/CalenderViewCustom"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:mcv_dateTextAppearance="@style/CalenderViewDateCustomText"
-        app:mcv_firstDayOfWeek="sunday"
-        app:mcv_leftArrow="@drawable/ic_arrow_back_mono"
-        app:mcv_rightArrow="@drawable/ic_arrow_forward"
-        app:mcv_selectionMode="range"
-        app:mcv_showOtherDates="all"
+        app:mcv_headerTextAppearance="@style/CalenderViewHeaderCustomText"
         app:mcv_weekDayTextAppearance="@style/CalenderViewWeekCustomText"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="24dp"
-        tools:layout_editor_absoluteY="69dp" />
+        app:mcv_firstDayOfWeek="monday"
+        app:mcv_selectionMode="single"
+        app:mcv_showOtherDates="all"
+        app:mcv_tileHeight="48dp" />
 
-    <!-- Horizontal Scroll View for Group Profiles -->
+    <!-- 선택된 날짜 업로드 텍스트 -->
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="25일 업로드"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/calendar_view" />
+
+    <!-- 업로드 목록 -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:scrollbars="none"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="524dp">
+        app:layout_constraintTop_toBottomOf="@id/textView">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp">
 
-            <!-- Profile Section -->
+            <!-- 업로드 아이템들 -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="140dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:gravity="center"
+                android:layout_marginEnd="12dp"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="64dp"
-                    android:layout_height="80dp"
-                    android:background="@drawable/login_bottom_background"
-                    android:padding="2dp" />
+                <androidx.cardview.widget.CardView
+                    android:layout_width="140dp"
+                    android:layout_height="180dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/gray5"
+                        android:scaleType="centerCrop" />
+                </androidx.cardview.widget.CardView>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center"
-                    android:text="그룹 생성하기"
-                    android:textColor="#000000"
+                    android:layout_marginTop="8dp"
+                    android:text="김동국의 STUDY"
+                    android:textColor="@color/black"
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <!-- Additional Profiles -->
+            <!-- 추가 업로드 아이템들은 위의 레이아웃을 복사하여 추가 -->
 
         </LinearLayout>
     </HorizontalScrollView>
-
-    <!-- Text View -->
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="날짜를 선택하세요"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="489dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

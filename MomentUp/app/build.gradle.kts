@@ -70,9 +70,17 @@ dependencies {
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
-    implementation (libs.material.calendarview) {
+
+    implementation(libs.material.calendarview) {
         exclude(group = "com.android.support")
+        exclude(module = "appcompat-v7")
+        exclude(module = "support-v4")
     }
+
+    // AndroidX 호환성을 위한 추가 의존성
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+    implementation("androidx.legacy:legacy-support-v4:1.0.0")
+
     implementation (libs.threetenabp)
     implementation ("com.vanniktech:android-image-cropper:4.6.0")
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
