@@ -2,7 +2,7 @@ import os
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from typing import List
 from app.settings import UPLOAD_DIR
-from app.yolo_service import detect_objects, draw_detections
+from app.yolo_service import detect_objects, draw_detections, determine_activity
 import logging
 
 # 로깅 설정
@@ -25,18 +25,20 @@ async def predict_images(files: List[UploadFile] = File(...)):
                 f.write(await file.read())
             image_paths.append(file_path)
 
-        # YOLO 모델로 탐지 수행
         results = []
         for image_path in image_paths:
+            # yolo 탐지
             detections = detect_objects(image_path)
             logger.info(f"Detections: {detections}")
             result_image_path = draw_detections(image_path, detections)
+            activity = determine_activity(detections)
 
             # 탐지 결과 추가
             results.append({
                 "original_image": image_path,
                 "result_image": result_image_path,
                 "detections": detections,
+                "activity": activity,
             })
             print(f"UPLOAD_DIR: {UPLOAD_DIR}") # 테스트
 
