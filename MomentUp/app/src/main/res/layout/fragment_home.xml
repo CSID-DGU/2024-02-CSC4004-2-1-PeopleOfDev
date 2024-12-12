@@ -117,307 +117,40 @@
     </LinearLayout>
 
     <!-- Group List -->
-    <LinearLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="match_parent">
 
-        <!-- 그룹명 1 -->
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingBottom="8dp">
+            android:layout_height="match_parent">
 
-            <!-- 회색 사진 프레임 -->
-            <FrameLayout
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/frame_background">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewGroups"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:clipToPadding="false"/>
 
-                <ImageView
-                    android:id="@+id/profile_image_1"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="Profile Image"/>
-            </FrameLayout>
-
-            <!-- 그룹명 및 업데이트 정보 -->
-            <LinearLayout
-                android:layout_width="0dp"
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1">
+                android:layout_gravity="center"
+                android:visibility="gone"/>
 
-                <TextView
-                    android:id="@+id/tvGroupName_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="그룹명1"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#000000" />
-
-                <TextView
-                    android:id="@+id/tvUpdateTime_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="30분 전 업데이트"
-                    android:textSize="14sp"
-                    android:textColor="#808080"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- 오른쪽 화살표 아이콘 -->
-            <ImageView
-                android:id="@+id/arrow_icon_1"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="16dp"
-                android:src="@drawable/ic_arrow_right"
-                android:contentDescription="Arrow Icon" />
-        </LinearLayout>
-
-        <!-- 그룹명 2 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingBottom="8dp">
-
-            <!-- 회색 사진 프레임 -->
-            <FrameLayout
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/frame_background">
-
-                <ImageView
-                    android:id="@+id/profile_image_2"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="Profile Image"/>
-            </FrameLayout>
-
-            <!-- 그룹명 및 업데이트 정보 -->
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/emptyView"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1">
+                android:layout_gravity="center"
+                android:text="그룹이 없습니다"
+                android:visibility="gone"/>
 
-                <TextView
-                    android:id="@+id/tvGroupName_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="그룹명2"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#000000" />
-
-                <TextView
-                    android:id="@+id/tvUpdateTime_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="1시간 전 업데이트"
-                    android:textSize="14sp"
-                    android:textColor="#808080"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- 오른쪽 화살표 아이콘 -->
-            <ImageView
-                android:id="@+id/arrow_icon_2"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="16dp"
-                android:src="@drawable/ic_arrow_right"
-                android:contentDescription="Arrow Icon" />
-        </LinearLayout>
-
-        <!-- 그룹명 3 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingBottom="8dp">
-
-            <!-- 회색 사진 프레임 -->
-            <FrameLayout
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/frame_background">
-
-                <ImageView
-                    android:id="@+id/profile_image_3"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="Profile Image"/>
-            </FrameLayout>
-
-            <!-- 그룹명 및 업데이트 정보 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/tvGroupName_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="그룹명3"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#000000" />
-
-                <TextView
-                    android:id="@+id/tvUpdateTime_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="2시간 전 업데이트"
-                    android:textSize="14sp"
-                    android:textColor="#808080"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- 오른쪽 화살표 아이콘 -->
-            <ImageView
-                android:id="@+id/arrow_icon_3"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="16dp"
-                android:src="@drawable/ic_arrow_right"
-                android:contentDescription="Arrow Icon" />
-        </LinearLayout>
-
-        <!-- 그룹명 4 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingBottom="8dp">
-
-            <!-- 회색 사진 프레임 -->
-            <FrameLayout
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/frame_background">
-
-                <ImageView
-                    android:id="@+id/profile_image_4"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="Profile Image"/>
-            </FrameLayout>
-
-            <!-- 그룹명 및 업데이트 정보 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/tvGroupName_4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="그룹명4"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#000000" />
-
-                <TextView
-                    android:id="@+id/tvUpdateTime_4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="3시간 전 업데이트"
-                    android:textSize="14sp"
-                    android:textColor="#808080"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- 오른쪽 화살표 아이콘 -->
-            <ImageView
-                android:id="@+id/arrow_icon_4"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="16dp"
-                android:src="@drawable/ic_arrow_right"
-                android:contentDescription="Arrow Icon" />
-        </LinearLayout>
-
-        <!-- 그룹명 5 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <!-- 회색 사진 프레임 -->
-            <FrameLayout
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/frame_background">
-
-                <ImageView
-                    android:id="@+id/profile_image_5"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="Profile Image"/>
-            </FrameLayout>
-
-            <!-- 그룹명 및 업데이트 정보 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/tvGroupName_5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="그룹명5"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#000000" />
-
-                <TextView
-                    android:id="@+id/tvUpdateTime_5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="4시간 전 업데이트"
-                    android:textSize="14sp"
-                    android:textColor="#808080"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- 오른쪽 화살표 아이콘 -->
-            <ImageView
-                android:id="@+id/arrow_icon_5"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="16dp"
-                android:src="@drawable/ic_arrow_right"
-                android:contentDescription="Arrow Icon" />
-        </LinearLayout>
-
-    </LinearLayout>
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 
 </LinearLayout>

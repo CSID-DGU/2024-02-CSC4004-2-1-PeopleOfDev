@@ -1,4 +1,9 @@
-package com.example.momentup;
+package com.example.momentup.api;
+
+import com.example.momentup.dto.UserDto;
+import com.example.momentup.request.LoginRequest;
+import com.example.momentup.response.SignUpResponse;
+import com.example.momentup.UserTokenRequest;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;

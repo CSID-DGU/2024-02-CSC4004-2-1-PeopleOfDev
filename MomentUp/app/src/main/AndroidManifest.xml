@@ -79,6 +79,10 @@
             android:name=".GroupCreateActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".GroupDetailActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

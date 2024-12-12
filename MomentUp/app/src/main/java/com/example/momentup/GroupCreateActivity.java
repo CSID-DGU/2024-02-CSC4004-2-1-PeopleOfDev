@@ -31,6 +31,8 @@ import com.canhub.cropper.CropImageOptions;
 import com.canhub.cropper.CropImageView;
 import com.google.android.material.imageview.ShapeableImageView;
 
+import lombok.Getter;
+
 public class GroupCreateActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 200;
     private static final String[] REQUIRED_PERMISSIONS;
@@ -50,6 +52,7 @@ public class GroupCreateActivity extends AppCompatActivity {
         }
     }
 
+    @Getter private GroupRepository groupRepository;
     private ImageView backgroundImage;
     private ShapeableImageView imagePreview;
     private ImageButton buttonBack;
@@ -93,6 +96,10 @@ public class GroupCreateActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_create);
+
+        groupRepository = GroupRepository.builder()
+                .context(this)
+                .build();
 
         initializeViews();
         setupListeners();
@@ -254,8 +261,40 @@ public class GroupCreateActivity extends AppCompatActivity {
         String groupTag = editGroupTag.getText().toString().trim();
         String groupText = editGroupText.getText().toString().trim();
 
-        // TODO: API 호출 및 그룹 생성 로직 구현
-        Toast.makeText(this, "그룹이 생성되었습니다.", Toast.LENGTH_SHORT).show();
-        finish();
+        // 로딩 중 상태 표시
+        submitButton.setEnabled(false);
+
+        // TODO: userNumber는 실제 로그인된 사용자의 번호로 교체필요
+        Long userNumber = 1L;  // 임시값
+
+        groupRepository.createGroup(
+                groupName,
+                groupTag,
+                groupText,
+                userNumber,
+                selectedProfileUri,
+                new GroupRepository.GroupCreationCallback() {
+                    @Override
+                    public void onSuccess(Long groupNumber) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(GroupCreateActivity.this,
+                                    "그룹이 성공적으로 생성되었습니다.",
+                                    Toast.LENGTH_SHORT).show();
+                            setResult(RESULT_OK);
+                            finish();
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        runOnUiThread(() -> {
+                            submitButton.setEnabled(true);
+                            Toast.makeText(GroupCreateActivity.this,
+                                    "그룹 생성에 실패했습니다: " + throwable.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        });
+                    }
+                }
+        );
     }
 }

@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
     implementation("org.projectlombok:lombok:1.18.30")
+    implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.2")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
@@ -112,4 +113,8 @@ dependencies {
     // Lombok
     compileOnly("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
+
+    // glide
+    implementation(libs.glide.core)
+    annotationProcessor(libs.glide.compiler)
 }

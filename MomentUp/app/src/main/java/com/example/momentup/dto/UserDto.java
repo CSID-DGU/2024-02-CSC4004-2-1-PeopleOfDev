@@ -1,4 +1,4 @@
-package com.example.momentup;
+package com.example.momentup.dto;
 
 import lombok.Data;
 

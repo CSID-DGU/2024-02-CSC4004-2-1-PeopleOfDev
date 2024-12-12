@@ -25,9 +25,10 @@ import retrofit2.Response;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.momentup.api.ApiResult;
+import com.example.momentup.dto.UserDto;
+import com.example.momentup.request.LoginRequest;
 import com.google.firebase.messaging.FirebaseMessaging;
-
-import java.io.IOException;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText usernameInput;

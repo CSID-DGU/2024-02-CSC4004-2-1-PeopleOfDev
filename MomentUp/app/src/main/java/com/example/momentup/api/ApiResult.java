@@ -1,4 +1,4 @@
-package com.example.momentup;
+package com.example.momentup.api;
 
 import java.util.Objects;
 
