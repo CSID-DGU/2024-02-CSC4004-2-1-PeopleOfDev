@@ -9,6 +9,7 @@ import android.text.SpannableString;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.UnderlineSpan;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -25,6 +26,8 @@ import retrofit2.Response;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.io.IOException;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText usernameInput;
@@ -157,63 +160,72 @@ public class LoginActivity extends AppCompatActivity {
         String username = usernameInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
-        loginButton.setEnabled(false);
-        loginButton.setTextColor(this.getColor(R.color.gray3));
+        LoginRequest loginRequest = new LoginRequest(username, password);
 
-        showLoading();
+        RetrofitClient.getInstance()
+                .getApi()
+                .login(loginRequest)
+                .enqueue(new Callback<ApiResult<UserDto>>() {
+                    @Override
+                    public void onResponse(Call<ApiResult<UserDto>> call, Response<ApiResult<UserDto>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            ApiResult<UserDto> result = response.body();
 
-        // FCM 토큰 가져오기
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String fcmToken = task.getResult();
-                        // 로그인 요청
-                        LoginRequest loginRequest = new LoginRequest(username, password);
+                            if (result.isSuccessful() && result.getData() != null) {
+                                UserDto user = result.getData();
+                                saveLoginState();
+                                updateFcmToken(user.getUserNumber());
+                                navigateToMain();
+                            } else {
+                                showErrorState(result.getMessage());
+                            }
+                        } else {
+                            showErrorState("로그인에 실패했습니다.");
+                        }
+                    }
 
-                        RetrofitClient.getInstance()
-                                .getApi()
-                                .login(loginRequest, fcmToken)
-                                .enqueue(new Callback<LoginResponse>() {
-                                    @Override
-                                    public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                                        hideLoading();
+                    private void showErrorState(String message) {
+                        errorContainer.setVisibility(View.VISIBLE);
+                        errorMessage.setText(message);
 
-                                        if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                                            // 로그인 성공
-                                            saveLoginState();
-                                            // JWT 토큰 저장
-                                            saveToken(response.body().getToken());
-                                            navigateToMain();
-                                        } else {
-                                            // 로그인 실패
-                                            showErrorState();
-                                            loginButton.setEnabled(true);
-                                            loginButton.setTextColor(getColor(R.color.white));
-                                        }
-                                    }
+                        Animation shake = AnimationUtils.loadAnimation(LoginActivity.this, R.anim.shake);
+                        errorContainer.startAnimation(shake);
+                    }
 
-                                    @Override
-                                    public void onFailure(Call<LoginResponse> call, Throwable t) {
-                                        hideLoading();
-                                        Toast.makeText(LoginActivity.this, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
-                                        loginButton.setEnabled(true);
-                                        loginButton.setTextColor(getColor(R.color.white));
-                                    }
-                                });
-                    } else {
+                    @Override
+                    public void onFailure(Call<ApiResult<UserDto>> call, Throwable t) {
+                        Log.e("LoginActivity", "Network Error", t);
                         hideLoading();
-                        Toast.makeText(LoginActivity.this, "FCM 토큰을 가져오는데 실패했습니다.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
                         loginButton.setEnabled(true);
                         loginButton.setTextColor(getColor(R.color.white));
                     }
                 });
     }
 
-    // 토큰 저장 메소드 추가
-    private void saveToken(String token) {
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putString("auth_token", token);
-        editor.apply();
+    private void updateFcmToken(Long userNumber) {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String fcmToken = task.getResult();
+                        UserTokenRequest tokenRequest = new UserTokenRequest(userNumber, fcmToken);
+
+                        RetrofitClient.getInstance()
+                                .getApi()
+                                .updateUserToken(tokenRequest)
+                                .enqueue(new Callback<ApiResult<Void>>() {
+                                    @Override
+                                    public void onResponse(Call<ApiResult<Void>> call, Response<ApiResult<Void>> response) {
+                                        // FCM 토큰 업데이트 성공/실패 처리는 선택적
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<ApiResult<Void>> call, Throwable t) {
+                                        // 실패 처리는 선택적
+                                    }
+                                });
+                    }
+                });
     }
 
     private void saveLoginState() {

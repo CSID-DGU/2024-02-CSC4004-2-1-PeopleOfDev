@@ -1,11 +1,14 @@
 package com.example.momentup;
 
-public class LoginRequest {
-    private String username;
-    private String password;
+import lombok.Data;
 
-    public LoginRequest(String username, String password) {
-        this.username = username;
-        this.password = password;
+@Data
+public class LoginRequest {
+    private String userId;
+    private String userPw;
+
+    public LoginRequest(String userId, String userPw) {
+        this.userId = userId;
+        this.userPw = userPw;
     }
 }

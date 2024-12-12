@@ -31,8 +31,10 @@ import com.canhub.cropper.CropImageContractOptions;
 import com.canhub.cropper.CropImageOptions;
 import com.canhub.cropper.CropImageView;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.gson.Gson;
 
 import java.io.File;
+import java.io.InputStream;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -251,53 +253,57 @@ public class SignUpActivity extends AppCompatActivity {
             LoadingDialog loadingDialog = new LoadingDialog(this);
             loadingDialog.show();
 
-            FirebaseMessaging.getInstance().getToken()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            String fcmToken = task.getResult();
+            try {
+                // CreateUserRequest 객체 생성
+                CreateUserRequest userRequest = new CreateUserRequest(id, password, name, email);
 
-                            try {
-                                File imageFile = new File(getRealPathFromURI(profileImageUri));
-                                RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), imageFile);
-                                MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), requestFile);
+                // 이미지 파일을 MultipartBody.Part로 변환
+                InputStream inputStream = getContentResolver().openInputStream(profileImageUri);
+                byte[] bytes = new byte[inputStream.available()];
+                inputStream.read(bytes);
 
-                                RequestBody nameBody = RequestBody.create(MediaType.parse("text/plain"), name);
-                                RequestBody usernameBody = RequestBody.create(MediaType.parse("text/plain"), id);
-                                RequestBody passwordBody = RequestBody.create(MediaType.parse("text/plain"), password);
-                                RequestBody emailBody = RequestBody.create(MediaType.parse("text/plain"), email);
+                RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), bytes);
+                MultipartBody.Part profilePart = MultipartBody.Part.createFormData("profile", "profile_image.jpg", requestFile);
 
-                                RetrofitClient.getInstance()
-                                        .getApi()
-                                        .signup(nameBody, usernameBody, passwordBody, emailBody, imagePart, fcmToken)
-                                        .enqueue(new Callback<SignUpResponse>() {
-                                            @Override
-                                            public void onResponse(Call<SignUpResponse> call, Response<SignUpResponse> response) {
-                                                loadingDialog.dismiss();
-                                                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                                                    Toast.makeText(SignUpActivity.this, "회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show();
-                                                    finish();
-                                                } else {
-                                                    Toast.makeText(SignUpActivity.this,
-                                                            response.body() != null ? response.body().getMessage() : "회원가입에 실패했습니다.",
-                                                            Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
+                // user 데이터를 JSON으로 변환
+                Gson gson = new Gson();
+                String userJson = gson.toJson(userRequest);
+                RequestBody userPart = RequestBody.create(MediaType.parse("application/json"), userJson);
 
-                                            @Override
-                                            public void onFailure(Call<SignUpResponse> call, Throwable t) {
-                                                loadingDialog.dismiss();
-                                                Toast.makeText(SignUpActivity.this, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                            } catch (Exception e) {
+                RetrofitClient.getInstance()
+                        .getApi()
+                        .saveUser(userPart, profilePart)
+                        .enqueue(new Callback<ApiResult<Long>>() {
+                            @Override
+                            public void onResponse(Call<ApiResult<Long>> call, Response<ApiResult<Long>> response) {
                                 loadingDialog.dismiss();
-                                Toast.makeText(SignUpActivity.this, "이미지 처리 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+                                if (response.isSuccessful() && response.body() != null && response.body().isSuccessful()) {
+                                    Toast.makeText(SignUpActivity.this, "회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                } else {
+                                    Toast.makeText(SignUpActivity.this,
+                                            response.body() != null ? response.body().getMessage() : "회원가입에 실패했습니다.",
+                                            Toast.LENGTH_SHORT).show();
+                                }
                             }
-                        } else {
-                            loadingDialog.dismiss();
-                            Toast.makeText(SignUpActivity.this, "FCM 토큰을 가져오는데 실패했습니다.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+
+                            @Override
+                            public void onFailure(Call<ApiResult<Long>> call, Throwable t) {
+                                loadingDialog.dismiss();
+                                Toast.makeText(SignUpActivity.this,
+                                        "네트워크 오류가 발생했습니다: " + t.getMessage(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                inputStream.close();
+            } catch (Exception e) {
+                loadingDialog.dismiss();
+                e.printStackTrace();
+                Toast.makeText(SignUpActivity.this,
+                        "이미지 처리 중 오류가 발생했습니다: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
