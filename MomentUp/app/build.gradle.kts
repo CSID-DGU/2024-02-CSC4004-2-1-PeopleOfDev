@@ -82,7 +82,11 @@ dependencies {
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
 
     implementation (libs.threetenabp)
+
+    // 사진 crop
     implementation ("com.vanniktech:android-image-cropper:4.6.0")
+
+    // FCM
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     implementation ("com.google.firebase:firebase-messaging")
     implementation ("com.google.firebase:firebase-analytics")
@@ -98,4 +102,8 @@ dependencies {
 
     // Coroutines (optional, for handling async tasks)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Spring boot 연결을 위한 retrofit
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 }

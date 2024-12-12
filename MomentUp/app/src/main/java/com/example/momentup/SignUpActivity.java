@@ -1,17 +1,14 @@
 package com.example.momentup;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
+import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -22,11 +19,27 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.canhub.cropper.CropImage;
 import com.canhub.cropper.CropImageContract;
 import com.canhub.cropper.CropImageContractOptions;
 import com.canhub.cropper.CropImageOptions;
 import com.canhub.cropper.CropImageView;
+import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.io.File;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SignUpActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 200;
@@ -224,26 +237,80 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void handleSignUp() {
-        // 입력값 가져오기
         String name = editTextName.getText().toString().trim();
         String id = editTextId.getText().toString().trim();
         String password = editTextPassword.getText().toString().trim();
         String email = editTextEmail.getText().toString().trim();
 
-        // 입력값 검증
         if (validateInput(name, id, password, email)) {
             if (profileImageUri == null) {
                 Toast.makeText(this, "프로필 이미지를 선택해주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // TODO: 회원가입 처리 로직 구현
-            // 서버 통신이나 로컬 DB 저장 등
-            // profileImageUri를 사용하여 이미지 처리
+            LoadingDialog loadingDialog = new LoadingDialog(this);
+            loadingDialog.show();
 
-            Toast.makeText(this, "회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show();
-            finish();
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            String fcmToken = task.getResult();
+
+                            try {
+                                File imageFile = new File(getRealPathFromURI(profileImageUri));
+                                RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), imageFile);
+                                MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), requestFile);
+
+                                RequestBody nameBody = RequestBody.create(MediaType.parse("text/plain"), name);
+                                RequestBody usernameBody = RequestBody.create(MediaType.parse("text/plain"), id);
+                                RequestBody passwordBody = RequestBody.create(MediaType.parse("text/plain"), password);
+                                RequestBody emailBody = RequestBody.create(MediaType.parse("text/plain"), email);
+
+                                RetrofitClient.getInstance()
+                                        .getApi()
+                                        .signup(nameBody, usernameBody, passwordBody, emailBody, imagePart, fcmToken)
+                                        .enqueue(new Callback<SignUpResponse>() {
+                                            @Override
+                                            public void onResponse(Call<SignUpResponse> call, Response<SignUpResponse> response) {
+                                                loadingDialog.dismiss();
+                                                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                                                    Toast.makeText(SignUpActivity.this, "회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show();
+                                                    finish();
+                                                } else {
+                                                    Toast.makeText(SignUpActivity.this,
+                                                            response.body() != null ? response.body().getMessage() : "회원가입에 실패했습니다.",
+                                                            Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onFailure(Call<SignUpResponse> call, Throwable t) {
+                                                loadingDialog.dismiss();
+                                                Toast.makeText(SignUpActivity.this, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                            } catch (Exception e) {
+                                loadingDialog.dismiss();
+                                Toast.makeText(SignUpActivity.this, "이미지 처리 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            loadingDialog.dismiss();
+                            Toast.makeText(SignUpActivity.this, "FCM 토큰을 가져오는데 실패했습니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
+    }
+
+    // URI에서 실제 파일 경로를 가져오는 헬퍼 메소드
+    private String getRealPathFromURI(Uri contentUri) {
+        String[] proj = {MediaStore.Images.Media.DATA};
+        CursorLoader loader = new CursorLoader(this, contentUri, proj, null, null, null);
+        Cursor cursor = loader.loadInBackground();
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        String result = cursor.getString(column_index);
+        cursor.close();
+        return result;
     }
 
     private boolean validateInput(String name, String id, String password, String email) {

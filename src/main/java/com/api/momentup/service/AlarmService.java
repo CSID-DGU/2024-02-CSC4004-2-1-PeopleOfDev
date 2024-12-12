@@ -2,10 +2,7 @@ package com.api.momentup.service;
 
 import com.api.momentup.domain.*;
 import com.api.momentup.domain.Calendar;
-import com.api.momentup.exception.AlarmNotFoundException;
-import com.api.momentup.exception.GroupNotFoundException;
-import com.api.momentup.exception.GroupNotJoinException;
-import com.api.momentup.exception.UserNotFoundException;
+import com.api.momentup.exception.*;
 import com.api.momentup.repository.*;
 import com.api.momentup.utils.AlarmJob;
 import com.api.momentup.utils.AlarmUtils;
@@ -141,7 +138,7 @@ public class AlarmService {
 
     // 알람 저장
     @Transactional
-    public Long saveAlarm(Long userNumber, Long groupNumber, String startTime, String endTime) throws UserNotFoundException, SchedulerException, GroupNotFoundException, GroupNotJoinException {
+    public Long saveAlarm(Long userNumber, Long groupNumber, String startTime, String endTime) throws UserNotFoundException, SchedulerException, GroupNotFoundException, GroupNotJoinException, UserTokenNotFoundException {
         LocalTime startTimeParse = LocalTime.parse(startTime);
         LocalTime endTimeParse = LocalTime.parse(endTime);
 
@@ -150,7 +147,10 @@ public class AlarmService {
 
         // FCM 토큰 불러오기
         List<UserToken> findTokens = userTokenJpaRepository.findByUsers(findUser);
-        // TODO: 2024-12-04 가장 최신 토큰 불러오기
+
+        if(findTokens.isEmpty()) {
+            throw new UserTokenNotFoundException();
+        }
 
 
         // 그룹 처리
@@ -281,11 +281,15 @@ public class AlarmService {
     }
 
     @Transactional
-    public void deActiveAlarm(Long alarmNumber) throws AlarmNotFoundException {
+    public void changeAlarmState(Long alarmNumber) throws AlarmNotFoundException {
         Alarm findAlarm = alarmJpsRepository.findById(alarmNumber)
                 .orElseThrow(AlarmNotFoundException::new);
 
-        findAlarm.setActive(AlarmStatus.DEACTIVE);
+        if(findAlarm.getStatus().equals(AlarmStatus.ACTIVE)) {
+            findAlarm.setActive(AlarmStatus.DEACTIVE);
+        } else {
+            findAlarm.setActive(AlarmStatus.ACTIVE);
+        }
     }
 
     @Transactional

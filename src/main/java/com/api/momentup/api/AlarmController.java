@@ -7,10 +7,7 @@ import com.api.momentup.dto.ResultType;
 import com.api.momentup.dto.alarm.request.AlarmEditRequest;
 import com.api.momentup.dto.alarm.request.AlarmSaveRequest;
 import com.api.momentup.dto.alarm.response.AlarmsDto;
-import com.api.momentup.exception.AlarmNotFoundException;
-import com.api.momentup.exception.GroupNotFoundException;
-import com.api.momentup.exception.GroupNotJoinException;
-import com.api.momentup.exception.UserNotFoundException;
+import com.api.momentup.exception.*;
 import com.api.momentup.service.AlarmService;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
@@ -35,6 +32,8 @@ public class AlarmController {
         }  catch (UserNotFoundException | GroupNotFoundException e) {
             return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
         } catch (SchedulerException | GroupNotJoinException e) {
+            return ApiResult.error(ResultType.FAIL.getCode(), e.getMessage());
+        } catch (UserTokenNotFoundException e) {
             return ApiResult.error(ResultType.FAIL.getCode(), e.getMessage());
         }
     }
@@ -86,6 +85,17 @@ public class AlarmController {
 
             return ApiResult.success(result);
         } catch (UserNotFoundException e) {
+            return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
+        }
+    }
+
+    @PutMapping("/status/{alarmNumber}")
+    public ApiResult changeAlarmState(@PathVariable Long alarmNumber) {
+        try {
+            alarmService.changeAlarmState(alarmNumber);
+
+            return ApiResult.success(null);
+        } catch (AlarmNotFoundException e) {
             return ApiResult.error(ResultType.NOT_FOUND.getCode(), e.getMessage());
         }
     }

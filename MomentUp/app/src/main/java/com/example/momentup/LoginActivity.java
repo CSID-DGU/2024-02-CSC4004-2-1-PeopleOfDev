@@ -1,6 +1,5 @@
 package com.example.momentup;
 
-import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -17,8 +16,15 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText usernameInput;
@@ -156,19 +162,58 @@ public class LoginActivity extends AppCompatActivity {
 
         showLoading();
 
-        // Simulate login check (replace with actual login logic)
-        if (username.equals("momentup111") && password.equals("password123")) {
-            // Success - proceed to next screen
-            saveLoginState();
-            hideLoading();
-            navigateToMain();
-        } else {
-            // Show error state
-            showErrorState();
-            hideLoading();
-            loginButton.setEnabled(true);
-            loginButton.setTextColor(this.getColor(R.color.white));
-        }
+        // FCM 토큰 가져오기
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String fcmToken = task.getResult();
+                        // 로그인 요청
+                        LoginRequest loginRequest = new LoginRequest(username, password);
+
+                        RetrofitClient.getInstance()
+                                .getApi()
+                                .login(loginRequest, fcmToken)
+                                .enqueue(new Callback<LoginResponse>() {
+                                    @Override
+                                    public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                                        hideLoading();
+
+                                        if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                                            // 로그인 성공
+                                            saveLoginState();
+                                            // JWT 토큰 저장
+                                            saveToken(response.body().getToken());
+                                            navigateToMain();
+                                        } else {
+                                            // 로그인 실패
+                                            showErrorState();
+                                            loginButton.setEnabled(true);
+                                            loginButton.setTextColor(getColor(R.color.white));
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<LoginResponse> call, Throwable t) {
+                                        hideLoading();
+                                        Toast.makeText(LoginActivity.this, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+                                        loginButton.setEnabled(true);
+                                        loginButton.setTextColor(getColor(R.color.white));
+                                    }
+                                });
+                    } else {
+                        hideLoading();
+                        Toast.makeText(LoginActivity.this, "FCM 토큰을 가져오는데 실패했습니다.", Toast.LENGTH_SHORT).show();
+                        loginButton.setEnabled(true);
+                        loginButton.setTextColor(getColor(R.color.white));
+                    }
+                });
+    }
+
+    // 토큰 저장 메소드 추가
+    private void saveToken(String token) {
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("auth_token", token);
+        editor.apply();
     }
 
     private void saveLoginState() {
