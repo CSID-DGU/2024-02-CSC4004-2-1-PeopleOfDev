@@ -11,6 +11,7 @@ import android.text.style.RelativeSizeSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.momentup.databinding.FragmentCalendarBinding
@@ -20,7 +21,10 @@ class CalendarFragment : Fragment() {
 
     private lateinit var binding: FragmentCalendarBinding
     private var selectedDate: CalendarDay? = null
-
+    private val uploadsByDate = mapOf(
+        CalendarDay.from(2024, 12, 1) to listOf("김동국의 STUDY", "이민지의 WORKOUT"),
+        CalendarDay.from(2024, 12, 5) to listOf("박지성의 READING")
+    )
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -32,6 +36,7 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupCalendarView()
+        updateUploadList(emptyList())
     }
 
     private fun setupCalendarView() {
@@ -77,7 +82,26 @@ class CalendarFragment : Fragment() {
                 selectedDecorator.setDate(date)
                 calendarView.invalidateDecorators()
                 binding.textView.text = "${date.day}일 업로드"
+
+                // 선택된 날짜에 맞는 업로드 목록 갱신
+                val uploads = uploadsByDate[date] ?: emptyList()
+                updateUploadList(uploads)
             }
+        }
+    }
+
+    private fun updateUploadList(uploadList: List<String>) {
+        val uploadContainer = binding.uploadContainer
+        uploadContainer.removeAllViews()
+
+        for (upload in uploadList) {
+            val itemView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.upload_item, uploadContainer, false)
+
+            val textView = itemView.findViewById<TextView>(R.id.uploadText)
+            textView.text = upload
+
+            uploadContainer.addView(itemView)
         }
     }
 
@@ -194,4 +218,5 @@ class CalendarFragment : Fragment() {
             view.addSpan(ForegroundColorSpan(Color.BLUE))
         }
     }
+
 }
