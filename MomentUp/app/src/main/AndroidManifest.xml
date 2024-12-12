@@ -76,6 +76,10 @@
             android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat"/>
 
+        <activity
+            android:name=".GroupCreateActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -47,7 +47,6 @@
                 android:layout_height="70dp"
                 android:layout_marginTop="8dp"
                 android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/CircularImageView"
                 android:background="@drawable/profile_image_background"
                 android:src="@drawable/default_profile"/>
 

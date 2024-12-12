@@ -1,5 +1,6 @@
 package com.example.momentup
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,12 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // 추가적인 로직이 필요하다면 여기에 작성하세요.
+
+        // 그룹 추가 버튼 클릭 리스너 설정
+        binding.btnAddGroup.setOnClickListener {
+            val intent = Intent(requireContext(), GroupCreateActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onDestroyView() {

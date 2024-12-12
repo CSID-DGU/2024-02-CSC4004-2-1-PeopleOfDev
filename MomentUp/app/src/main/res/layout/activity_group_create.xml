@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp">
+
+        <ImageButton
+            android:id="@+id/buttonBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back_mono" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="그룹 생성하기"
+            android:textColor="@color/gray1"
+            android:textSize="18sp"
+            android:fontFamily="@font/nexon_bold"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.example.momentup.AspectRatioFrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- 배경 이미지 선택 -->
+                <ImageView
+                    android:id="@+id/backgroundImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/gray4"
+                    android:scaleType="centerCrop"/>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|right"
+                    android:layout_margin="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:id="@+id/pencilIcon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="@color/white"
+                        android:src="@drawable/ic_pencil_mono"
+                        android:scaleType="centerCrop" />
+                </androidx.cardview.widget.CardView>
+
+                <!-- 그룹 이미지 프리뷰 (하단 중앙에 배치) -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imagePreview"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="26dp"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/CircularImageView"
+                    android:background="@drawable/profile_image_background"
+                    android:src="@drawable/default_profile"/>
+            </com.example.momentup.AspectRatioFrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- 이름 입력 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="그룹명"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/pretendard_regular" />
+
+                <EditText
+                    android:id="@+id/editGroupName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="그룹명을 입력해주세요."
+                    android:textSize="16sp"
+                    android:fontFamily="@font/pretendard_regular"
+                    android:padding="15dp"
+                    android:background="@drawable/edit_text_background"
+                    android:layout_marginTop="4dp"/>
+
+                <!-- 아이디 입력 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="그룹 해시태그"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/pretendard_regular"
+                    android:layout_marginTop="16dp"/>
+
+                <EditText
+                    android:id="@+id/editGroupTag"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="해시태그를 입력해주세요."
+                    android:textSize="16sp"
+                    android:fontFamily="@font/pretendard_regular"
+                    android:padding="15dp"
+                    android:background="@drawable/edit_text_background"
+                    android:layout_marginTop="4dp"/>
+
+                <!-- 아이디 입력 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="그룹 소개"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/pretendard_regular"
+                    android:layout_marginTop="16dp"/>
+
+                <EditText
+                    android:id="@+id/editGroupText"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:minHeight="200dp"
+                    android:gravity="top"
+                    android:hint="그룹 소개글을 작성해주세요."
+                    android:textSize="16sp"
+                    android:fontFamily="@font/pretendard_regular"
+                    android:padding="15dp"
+                    android:background="@drawable/edit_text_background"
+                    android:layout_marginTop="4dp"
+                    android:inputType="textMultiLine"
+                    android:scrollbars="vertical" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/submitButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:padding="18dp"
+        android:background="@drawable/button_background"
+        android:enabled="false"
+        android:text="그룹 생성하기"
+        android:fontFamily="@font/pretendard_bold"
+        android:textSize="16sp"
+        android:textColor="@color/gray3"/>
+
+</LinearLayout>

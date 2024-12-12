@@ -109,6 +109,7 @@
             android:textStyle="bold" />
 
         <ImageView
+            android:id="@+id/btn_add_group"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
