@@ -70,7 +70,7 @@ public class UserApiController {
         return ApiResult.success(null);
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     @Operation(summary = "로그인", description = "아이디 패스워드로 로그인")
     public ApiResult login(@RequestBody @Valid LoginRequest request) {
         try {
