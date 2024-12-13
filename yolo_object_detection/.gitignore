@@ -3,7 +3,7 @@
 
 # yolov5 폴더 무시
 yolov5/
-yolov5s.pt
+yolov5l.pt
 
 # 특정 이미지 파일 무시
 image*.jpg
@@ -16,5 +16,12 @@ uploads/
 # 캐시 파일
 app/__pycache__/
 
-__pycache__/
+__pycache__
+# 가상환경
 .venv/
+
+# DB 정보
+/.env
+
+# DB 파일
+test.db/
