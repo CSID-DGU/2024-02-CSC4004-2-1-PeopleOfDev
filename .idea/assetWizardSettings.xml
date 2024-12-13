@@ -319,8 +319,8 @@
                           <map>
                             <entry key="assetSourceType" value="FILE" />
                             <entry key="color" value="f04452" />
-                            <entry key="outputName" value="ic_x" />
-                            <entry key="sourceFile" value="C:\Users\root\Downloads\icon-x-mono.svg" />
+                            <entry key="outputName" value="ic_bookmark_mono" />
+                            <entry key="sourceFile" value="C:\Users\root\Downloads\icon-bookmark-mono.svg" />
                           </map>
                         </option>
                       </PersistentState>
